@@ -184,7 +184,7 @@ private fun getHijriDateString(): String {
         val yearBn = toBengaliNumber(year.toString())
         
         "$dayBn $monthName, $yearBn"
-    } catch (e: Exception) {
+    } catch (e: Throwable) {
         "১৪ জিলহজ, ১৪৪৬" // Safe fallback
     }
 }

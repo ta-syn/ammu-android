@@ -226,7 +226,8 @@ fun HeroSection(
                 }
                 
                 val userName = profile?.fullName ?: "আম্মু"
-                val (greeting, emoji) = when (java.time.LocalTime.now().hour) {
+                val hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
+                val (greeting, emoji) = when (hour) {
                     in 5..11 -> "শুভ সকাল" to "☀️"
                     in 12..16 -> "শুভ দুপুর" to "☀️"
                     in 17..19 -> "শুভ সন্ধ্যা" to "🌅"

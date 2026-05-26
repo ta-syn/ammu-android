@@ -37,6 +37,8 @@ import com.example.ui.theme.GreenLight
 import com.example.ui.theme.InfoCalm
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import coil.compose.AsyncImage
+import androidx.compose.ui.layout.ContentScale
 
 import androidx.compose.ui.zIndex
 import androidx.compose.material3.IconButton
@@ -115,8 +117,12 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
             .background(MaterialTheme.colorScheme.background)
     ) {
         val weatherNav = { navController.navigate("weather") }
+        val settingsNav = { navController.navigate("settings") }
         // Hero Section
-        HeroSection(onWeatherClick = weatherNav)
+        HeroSection(
+            onWeatherClick = weatherNav,
+            onProfileClick = settingsNav
+        )
 
         Column(
             modifier = Modifier
@@ -127,34 +133,38 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
             // Next Prayer Card
             NextPrayerCard()
 
+            val chatNav = { navController.navigate("chat") }
             val quranNav = { navController.navigate("quran") }
+            val hadithNav = { navController.navigate("hadith") }
+            val duaNav = { navController.navigate("dua") }
             val tasbihNav = { navController.navigate("tasbih") }
             val qiblaNav = { navController.navigate("qibla") }
-            val duaNav = { navController.navigate("dua") }
             val medicineNav = { navController.navigate("medicine") }
             val hospitalNav = { navController.navigate("hospital") }
+            val expenseNav = { navController.navigate("expense") }
+            val shoppingNav = { navController.navigate("shopping") }
             val recipeNav = { navController.navigate("recipe") }
             val newsNav = { navController.navigate("news") }
-            val shoppingNav = { navController.navigate("shopping") }
-            val familyNav = { navController.navigate("family") }
             val journalNav = { navController.navigate("journal") }
-            val settingsNav = { navController.navigate("settings") }
-            val expenseNav = { navController.navigate("expense") }
-            // Quick Actions Row
-            QuickActionsRow(
+            val familyNav = { navController.navigate("family") }
+
+            // Quick Actions Grid
+            QuickActionsGrid(
+                onNavigateToChat = chatNav,
                 onNavigateToQuran = quranNav,
+                onNavigateToHadith = hadithNav,
+                onNavigateToDua = duaNav,
                 onNavigateToTasbih = tasbihNav,
                 onNavigateToQibla = qiblaNav,
-                onNavigateToDua = duaNav,
                 onNavigateToMedicine = medicineNav,
                 onNavigateToHospital = hospitalNav,
+                onNavigateToExpense = expenseNav,
+                onNavigateToShopping = shoppingNav,
                 onNavigateToRecipe = recipeNav,
                 onNavigateToNews = newsNav,
-                onNavigateToShopping = shoppingNav,
-                onNavigateToFamily = familyNav,
                 onNavigateToJournal = journalNav,
-                onNavigateToSettings = settingsNav,
-                onNavigateToExpense = expenseNav
+                onNavigateToFamily = familyNav,
+                onNavigateToSettings = settingsNav
             )
 
             // Today's Medicine Card
@@ -184,10 +194,15 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
 fun HeroSection(
     notificationViewModel: NotificationSharedViewModel = viewModel(),
     weatherViewModel: WeatherViewModel = viewModel(),
-    onWeatherClick: () -> Unit = {}
+    onWeatherClick: () -> Unit = {},
+    onProfileClick: () -> Unit = {}
 ) {
     val notifications by notificationViewModel.notifications.collectAsState()
     val weatherState by weatherViewModel.uiState.collectAsState()
+    
+    val context = LocalContext.current
+    val db = remember { com.example.data.local.DatabaseProvider.getDatabase(context) }
+    val profile by db.ammuDao().getProfile().collectAsState(initial = null)
     
     var showNotifs by remember { mutableStateOf(false) }
     var latestPushNotif by remember { mutableStateOf<com.example.data.local.entity.AppNotification?>(null) }
@@ -201,38 +216,88 @@ fun HeroSection(
                     shape = RoundedCornerShape(bottomStart = Radius.xl, bottomEnd = Radius.xl)
                 )
                 .clickable { onWeatherClick() }
-                .padding(top = 24.dp, bottom = 32.dp, start = 16.dp, end = 16.dp)
+                .statusBarsPadding()
+                .padding(top = 16.dp, bottom = 24.dp, start = 16.dp, end = 16.dp)
         ) {
             Column {
                 var visible by remember { mutableStateOf(false) }
                 LaunchedEffect(Unit) {
                     visible = true
                 }
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                
+                val userName = profile?.fullName ?: "আম্মু"
+                val (greeting, emoji) = when (java.time.LocalTime.now().hour) {
+                    in 5..11 -> "শুভ সকাল" to "☀️"
+                    in 12..16 -> "শুভ দুপুর" to "☀️"
+                    in 17..19 -> "শুভ সন্ধ্যা" to "🌅"
+                    else -> "শুভ রাত্রি" to "🌙"
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     androidx.compose.animation.AnimatedVisibility(
                         visible = visible,
                         enter = androidx.compose.animation.fadeIn(animationSpec = androidx.compose.animation.core.tween(1500)) +
                                 androidx.compose.animation.slideInVertically(initialOffsetY = { 20 })
                     ) {
-                        BanglaHeading(text = "শুভ সকাল ☀️ আম্মু", color = MaterialTheme.colorScheme.primary)
+                        BanglaHeading(
+                            text = "$greeting, $userName $emoji",
+                            color = MaterialTheme.colorScheme.primary,
+                            fontSize = 22.sp
+                        )
                     }
-                    Row {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         // Test Button to simulate incoming push notification
-                        IconButton(onClick = {
-                            val newNotif = com.example.data.local.entity.AppNotification(
-                                title = "🕌 আসরের নামাজের সময়",
-                                message = "আসরের নামাজের সময় শুরু হয়েছে।",
-                                type = "prayer"
+                        IconButton(
+                            onClick = {
+                                val newNotif = com.example.data.local.entity.AppNotification(
+                                    title = "🕌 আসরের নামাজের সময়",
+                                    message = "আসরের নামাজের সময় শুরু হয়েছে।",
+                                    type = "prayer"
+                                )
+                                notificationViewModel.simulateNewNotification(newNotif.title, newNotif.message, newNotif.type)
+                                latestPushNotif = newNotif
+                            },
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.PlayArrow,
+                                contentDescription = "Test Notification",
+                                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
                             )
-                            notificationViewModel.simulateNewNotification(newNotif.title, newNotif.message, newNotif.type)
-                            latestPushNotif = newNotif
-                        }) {
-                            Icon(Icons.Filled.PlayArrow, contentDescription = "Test Notification")
                         }
                         NotificationBell(
                             notifications = notifications,
                             onNotificationClick = { showNotifs = true }
                         )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primaryContainer)
+                                .clickable { onProfileClick() },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (!profile?.avatarUrl.isNullOrEmpty()) {
+                                AsyncImage(
+                                    model = profile!!.avatarUrl,
+                                    contentDescription = "Profile",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                Icon(
+                                    Icons.Filled.Person,
+                                    contentDescription = "Profile",
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
                     }
                 }
                 Spacer(modifier = Modifier.height(4.dp))
@@ -241,8 +306,8 @@ fun HeroSection(
                 if (weatherState is WeatherUiState.Success) {
                     val weather = (weatherState as WeatherUiState.Success).weather
                     val current = weather.current_weather
-                    val (emoji, desc) = weatherViewModel.getWeatherEmojiAndDesc(current?.weathercode ?: 0)
-                    weatherText = "১৪ জিলহজ | $emoji $desc — তাপমাত্রা ${com.example.ui.screens.weather.banglaNumerals(current?.temperature?.toInt() ?: 0)}°C"
+                    val (wEmoji, desc) = weatherViewModel.getWeatherEmojiAndDesc(current?.weathercode ?: 0)
+                    weatherText = "১৪ জিলহজ | $wEmoji $desc — তাপমাত্রা ${com.example.ui.screens.weather.banglaNumerals(current?.temperature?.toInt() ?: 0)}°C"
                 }
 
                 BanglaText(
@@ -280,7 +345,6 @@ fun HeroSection(
             onMarkAsRead = { notificationViewModel.markAsRead(it) },
             onMarkAllAsRead = { notificationViewModel.markAllAsRead() },
             onClearAll = { notificationViewModel.clearAll() }
-        )
     }
 }
 
@@ -330,12 +394,76 @@ fun NextPrayerCard() {
                     shadowElevation = 1.dp
                 ) {
                     Column(
-                        modifier = Modifier.padding(vertical = 8.dp, horizontal = 12.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+data class QuickActionItem(
+    val id: String,
+    val title: String,
+    val emoji: String,
+    val color: Color,
+    val onClick: () -> Unit
+)
+
+@Composable
+fun QuickActionsGrid(
+    onNavigateToChat: () -> Unit = {},
+    onNavigateToQuran: () -> Unit = {},
+    onNavigateToHadith: () -> Unit = {},
+    onNavigateToDua: () -> Unit = {},
+    onNavigateToTasbih: () -> Unit = {},
+    onNavigateToQibla: () -> Unit = {},
+    onNavigateToMedicine: () -> Unit = {},
+    onNavigateToHospital: () -> Unit = {},
+    onNavigateToExpense: () -> Unit = {},
+    onNavigateToShopping: () -> Unit = {},
+    onNavigateToRecipe: () -> Unit = {},
+    onNavigateToNews: () -> Unit = {},
+    onNavigateToJournal: () -> Unit = {},
+    onNavigateToFamily: () -> Unit = {},
+    onNavigateToSettings: () -> Unit = {}
+) {
+    val items = listOf(
+        QuickActionItem("chat", "AI চ্যাট", "💬", Color(0xFFEDE7F6), onNavigateToChat),
+        QuickActionItem("quran", "কোরআন", "📖", Color(0xFFE8F5E9), onNavigateToQuran),
+        QuickActionItem("hadith", "হাদিস", "📜", Color(0xFFE8F5E9), onNavigateToHadith),
+        QuickActionItem("dua", "দোয়া", "🤲", Color(0xFFE8F5E9), onNavigateToDua),
+        QuickActionItem("tasbih", "তাসবিহ", "📿", Color(0xFFE8F5E9), onNavigateToTasbih),
+        QuickActionItem("qibla", "কিবলা", "🧭", Color(0xFFE8F5E9), onNavigateToQibla),
+        QuickActionItem("medicine", "ওষুধ", "💊", Color(0xFFE3F2FD), onNavigateToMedicine),
+        QuickActionItem("hospital", "হাসপাতাল", "🏥", Color(0xFFE3F2FD), onNavigateToHospital),
+        QuickActionItem("expense", "খরচ", "💰", Color(0xFFFFF8E1), onNavigateToExpense),
+        QuickActionItem("shopping", "বাজার", "🛒", Color(0xFFFFF8E1), onNavigateToShopping),
+        QuickActionItem("recipe", "রেসিপি", "🍳", Color(0xFFFBE9E7), onNavigateToRecipe),
+        QuickActionItem("news", "সংবাদ", "📰", Color(0xFFE0F2F1), onNavigateToNews),
+        QuickActionItem("journal", "ডায়েরি", "📓", Color(0xFFEFEBE9), onNavigateToJournal),
+        QuickActionItem("family", "পরিবার", "👨‍👩‍👧‍👦", Color(0xFFFCE4EC), onNavigateToFamily),
+        QuickActionItem("settings", "সেটিংস", "⚙️", Color(0xFFECEFF1), onNavigateToSettings)
+    )
+
+    CardBase(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(8.dp)) {
+            BanglaHeading(
+                text = "প্রধান সেবাসমূহ",
+                fontSize = 18.sp,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(bottom = 16.dp, start = 4.dp)
+            )
+            
+            val chunkSize = 4
+            val rows = items.chunked(chunkSize)
+            
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                for (rowItems in rows) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        BanglaText(text = prayer.first, fontWeight = FontWeight.SemiBold)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        BanglaText(text = prayer.second, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        for (item in rowItems) {
+                            GridItemCard(item = item, modifier = Modifier.weight(1f))
+                        }
+                        if (rowItems.size < chunkSize) {
+                            repeat(chunkSize - rowItems.size) {
+                                Spacer(modifier = Modifier.weight(1f))
+                            }
+                        }
                     }
                 }
             }
@@ -343,93 +471,37 @@ fun NextPrayerCard() {
     }
 }
 
-data class QuickAction(val id: String, val title: String, val emoji: String)
-
 @Composable
-fun QuickActionsRow(
-    onNavigateToQuran: () -> Unit = {},
-    onNavigateToTasbih: () -> Unit = {},
-    onNavigateToQibla: () -> Unit = {},
-    onNavigateToDua: () -> Unit = {},
-    onNavigateToMedicine: () -> Unit = {},
-    onNavigateToHospital: () -> Unit = {},
-    onNavigateToRecipe: () -> Unit = {},
-    onNavigateToNews: () -> Unit = {},
-    onNavigateToShopping: () -> Unit = {},
-    onNavigateToFamily: () -> Unit = {},
-    onNavigateToJournal: () -> Unit = {},
-    onNavigateToSettings: () -> Unit = {},
-    onNavigateToExpense: () -> Unit = {}
-) {
-    val actions = listOf(
-        QuickAction("chat", "AI চ্যাট", "💬"),
-        QuickAction("expense", "খরচ", "💰"),
-        QuickAction("quran", "কোরআন", "📖"),
-        QuickAction("hospital", "হাসপাতাল", "🏥"),
-        QuickAction("medicine", "ওষুধ", "💊"),
-        QuickAction("family", "পরিবার", "👨‍👩‍👧‍👦"),
-        QuickAction("shopping", "বাজার", "🛒"),
-        QuickAction("news", "সংবাদ", "📰"),
-        QuickAction("recipe", "রেসিপি", "🍳"),
-        QuickAction("journal", "ডায়েরি", "📓"),
-        QuickAction("settings", "সেটিংস", "⚙️")
-    )
-
-    
-    LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp)
+fun GridItemCard(item: QuickActionItem, modifier: Modifier = Modifier) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(onClick = item.onClick)
+            .padding(vertical = 4.dp)
     ) {
-        items(actions) { action ->
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.clickable {
-                    if (action.id == "quran") {
-                        onNavigateToQuran()
-                    } else if (action.id == "tasbih") {
-                        onNavigateToTasbih()
-                    } else if (action.id == "qibla") {
-                        onNavigateToQibla()
-                    } else if (action.id == "dua") {
-                        onNavigateToDua()
-                    } else if (action.id == "medicine") {
-                        onNavigateToMedicine()
-                    } else if (action.id == "hospital") {
-                        onNavigateToHospital()
-                    } else if (action.id == "recipe") {
-                        onNavigateToRecipe()
-                    } else if (action.id == "news") {
-                        onNavigateToNews()
-                    } else if (action.id == "shopping") {
-                        onNavigateToShopping()
-                    } else if (action.id == "family") {
-                        onNavigateToFamily()
-                    } else if (action.id == "journal") {
-                        onNavigateToJournal()
-                    } else if (action.id == "settings") {
-                        onNavigateToSettings()
-                    } else if (action.id == "expense") {
-                        onNavigateToExpense()
-                    }
-                }
-            ) {
-                Surface(
-                    modifier = Modifier.size(72.dp),
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.surface,
-                    shadowElevation = 2.dp
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        androidx.compose.material3.Text(
-                            text = action.emoji,
-                            fontSize = 28.sp
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                BanglaText(text = action.title, color = MaterialTheme.colorScheme.onSurface)
+        Surface(
+            modifier = Modifier.size(52.dp),
+            shape = RoundedCornerShape(12.dp),
+            color = item.color,
+            shadowElevation = 1.dp
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                androidx.compose.material3.Text(
+                    text = item.emoji,
+                    fontSize = 24.sp
+                )
             }
         }
+        Spacer(modifier = Modifier.height(6.dp))
+        BanglaText(
+            text = item.title,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Medium,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 1
+        )
     }
 }
 

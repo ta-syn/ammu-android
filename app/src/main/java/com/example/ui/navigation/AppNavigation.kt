@@ -153,7 +153,8 @@ fun AppNavigation() {
                 if (!isAuthScreen) {
                     // Find current screen title
                     val currentScreen = Screen.fromRoute(currentDestination?.route)
-                    if (currentDestination?.route?.startsWith("surah_reader") != true) {
+                    val isHomeScreen = currentDestination?.route == Screen.Home.route
+                    if (currentDestination?.route?.startsWith("surah_reader") != true && !isHomeScreen) {
                         AppHeader(title = currentScreen?.title ?: "আম্মু")
                     }
                 }

@@ -17,8 +17,10 @@ Deno.serve(async (_req) => {
     if (fetchError) throw fetchError;
     
     const now = new Date();
-    const currentHour = now.getHours();
-    const currentMin = now.getMinutes();
+    // Convert current UTC time to Bangladesh Standard Time (BST, UTC+6)
+    const bstTime = new Date(now.getTime() + (6 * 60 * 60 * 1000));
+    const currentHour = bstTime.getUTCHours();
+    const currentMin = bstTime.getUTCMinutes();
     
     const triggers: any[] = [];
     
@@ -36,8 +38,8 @@ Deno.serve(async (_req) => {
         const h = parseInt(parts[0]);
         const m = parseInt(parts[1]);
         
-        // Match hour and minute range
-        if (h === currentHour && Math.abs(m - currentMin) <= 1) {
+        // Match exact hour and minute in Bangladesh Time (BST)
+        if (h === currentHour && m === currentMin) {
           triggers.push(med);
           
           await supabase.from('medicine_logs').insert([

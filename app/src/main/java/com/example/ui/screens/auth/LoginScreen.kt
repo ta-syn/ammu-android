@@ -2,13 +2,13 @@ package com.example.ui.screens.auth
 
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Face
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -22,11 +22,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.auth.providers.Google
 import io.github.jan.supabase.auth.providers.Facebook
 import com.example.network.supabaseClient
 import com.example.ui.components.*
 import io.github.jan.supabase.auth.status.SessionStatus
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
@@ -34,7 +34,7 @@ fun LoginScreen(
     onNavigateToRegister: () -> Unit,
     onLoginSuccess: () -> Unit
 ) {
-    var isLoading by remember { mutableStateOf(false) }
+    var isGoogleLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -53,7 +53,7 @@ fun LoginScreen(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            // Fancy Header
+            // Header
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -102,10 +102,12 @@ fun LoginScreen(
                         text = "লগইন করুন",
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
-                        modifier = Modifier.fillMaxWidth().padding(bottom = Spacing.sm),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = Spacing.sm),
                         textAlign = TextAlign.Center
                     )
-                    
+
                     if (errorMessage.isNotEmpty()) {
                         BanglaText(
                             text = errorMessage,
@@ -116,15 +118,16 @@ fun LoginScreen(
                         )
                     }
 
+                    // ── Google Login Button ──────────────────────────────
                     AppButton(
-                        text = if (isLoading) "অপেক্ষা করুন..." else "Facebook দিয়ে লগইন করুন",
+                        text = if (isGoogleLoading) "অপেক্ষা করুন..." else "🔵  Google দিয়ে লগইন করুন",
                         onClick = {
-                            isLoading = true
+                            isGoogleLoading = true
                             errorMessage = ""
                             scope.launch {
                                 try {
                                     val url = supabaseClient.auth.getOAuthUrl(
-                                        provider = Facebook,
+                                        provider = Google,
                                         redirectUrl = "app://supabase.login"
                                     )
                                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url.toString()))
@@ -133,12 +136,41 @@ fun LoginScreen(
                                 } catch (e: Exception) {
                                     errorMessage = "ত্রুটি হয়েছে: ${e.message}"
                                 } finally {
-                                    isLoading = false
+                                    isGoogleLoading = false
                                 }
                             }
                         },
-                        enabled = !isLoading,
-                        containerColor = Color(0xFF1877F2),
+                        enabled = !isGoogleLoading,
+                        containerColor = Color(0xFF4285F4),
+                        contentColor = Color.White
+                    )
+
+                    // ── Divider ──────────────────────────────────────────
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        HorizontalDivider(modifier = Modifier.weight(1f))
+                        BanglaText(
+                            text = "  অথবা  ",
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                            fontSize = 13.sp
+                        )
+                        HorizontalDivider(modifier = Modifier.weight(1f))
+                    }
+
+                    // ── Facebook Login Button (Coming Soon) ──────────────
+                    AppButton(
+                        text = "🔵  Facebook দিয়ে লগইন করুন",
+                        onClick = {
+                            Toast.makeText(
+                                context,
+                                "Coming Soon! 🚀",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        },
+                        enabled = true,
+                        containerColor = Color(0xFF1877F2).copy(alpha = 0.5f),
                         contentColor = Color.White
                     )
 

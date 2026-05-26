@@ -1,5 +1,7 @@
 # 🕋 আম্মু অ্যাপ (Ammu App) — মায়েদের ডিজিটাল ডায়েরি ও লাইফস্টাইল সহকারী
 
+> 💝 **উৎসর্গ:** এই অ্যাপ্লিকেশনটি **নিশান (Nishan)** কর্তৃক অত্যন্ত ভালোবাসা ও যত্ন সহকারে তাঁর মায়ের ব্যবহারের জন্য তৈরি করা হয়েছে।
+
 [![Build Android APK](https://github.com/ta-syn/ammu-android/actions/workflows/android-build.yml/badge.svg)](https://github.com/ta-syn/ammu-android/actions/workflows/android-build.yml)
 [![Platform](https://img.shields.io/badge/Platform-Android-green?logo=android)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Language-Kotlin-purple?logo=kotlin)](https://kotlinlang.org)

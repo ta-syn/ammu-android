@@ -15,6 +15,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.ui.theme.GoldAccent
 import com.example.ui.theme.InfoCalm
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.foundation.layout.Spacer
 
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -107,22 +113,22 @@ fun BanglaText(
     text: String,
     modifier: Modifier = Modifier,
     color: Color = Color.Unspecified,
-    fontWeight: androidx.compose.ui.text.font.FontWeight? = null,
-    fontSize: androidx.compose.ui.unit.TextUnit = androidx.compose.ui.unit.TextUnit.Unspecified,
-    textAlign: androidx.compose.ui.text.style.TextAlign? = null,
-    lineHeight: androidx.compose.ui.unit.TextUnit = androidx.compose.ui.unit.TextUnit.Unspecified,
-    textDecoration: androidx.compose.ui.text.style.TextDecoration? = null
+    fontWeight: FontWeight? = null,
+    fontSize: TextUnit = TextUnit.Unspecified,
+    textAlign: TextAlign? = null,
+    lineHeight: TextUnit = TextUnit.Unspecified,
+    textDecoration: TextDecoration? = null
 ) {
     val fontScale = com.example.ui.theme.LocalFontScale.current
-    val finalFontSize = if (fontSize != androidx.compose.ui.unit.TextUnit.Unspecified && fontSize.isSp) {
-        (fontSize.value * fontScale).androidx.compose.ui.unit.sp
-    } else if (fontSize == androidx.compose.ui.unit.TextUnit.Unspecified) {
-        (16 * fontScale).androidx.compose.ui.unit.sp
+    val finalFontSize = if (fontSize != TextUnit.Unspecified && fontSize.isSp) {
+        (fontSize.value * fontScale).sp
+    } else if (fontSize == TextUnit.Unspecified) {
+        (16 * fontScale).sp
     } else {
         fontSize
     }
-    val finalLineHeight = if (lineHeight != androidx.compose.ui.unit.TextUnit.Unspecified && lineHeight.isSp) {
-        (lineHeight.value * fontScale).androidx.compose.ui.unit.sp
+    val finalLineHeight = if (lineHeight != TextUnit.Unspecified && lineHeight.isSp) {
+        (lineHeight.value * fontScale).sp
     } else {
         lineHeight
     }
@@ -145,15 +151,15 @@ fun BanglaHeading(
     text: String,
     modifier: Modifier = Modifier,
     color: Color = Color.Unspecified,
-    fontWeight: androidx.compose.ui.text.font.FontWeight? = null,
-    fontSize: androidx.compose.ui.unit.TextUnit = androidx.compose.ui.unit.TextUnit.Unspecified,
-    textAlign: androidx.compose.ui.text.style.TextAlign? = null
+    fontWeight: FontWeight? = null,
+    fontSize: TextUnit = TextUnit.Unspecified,
+    textAlign: TextAlign? = null
 ) {
     val fontScale = com.example.ui.theme.LocalFontScale.current
-    val finalFontSize = if (fontSize != androidx.compose.ui.unit.TextUnit.Unspecified && fontSize.isSp) {
-        (fontSize.value * fontScale).androidx.compose.ui.unit.sp
-    } else if (fontSize == androidx.compose.ui.unit.TextUnit.Unspecified) {
-        (22 * fontScale).androidx.compose.ui.unit.sp
+    val finalFontSize = if (fontSize != TextUnit.Unspecified && fontSize.isSp) {
+        (fontSize.value * fontScale).sp
+    } else if (fontSize == TextUnit.Unspecified) {
+        (22 * fontScale).sp
     } else {
         fontSize
     }
@@ -199,13 +205,13 @@ fun AppButton(
     ) {
         if (icon != null) {
             icon()
-            androidx.compose.foundation.layout.Spacer(modifier = Modifier.width(Spacing.sm))
+            Spacer(modifier = Modifier.width(Spacing.sm))
         }
         BanglaText(
             text = text,
             color = contentColor,
-            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-            fontSize = (16 * fontScale).androidx.compose.ui.unit.sp
+            fontWeight = FontWeight.Bold,
+            fontSize = (16 * fontScale).sp
         )
     }
 }

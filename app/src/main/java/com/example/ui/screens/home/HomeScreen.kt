@@ -58,6 +58,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.serialization.json.jsonPrimitive
+import io.github.jan.supabase.auth.auth
 import com.example.network.supabaseClient
 import com.example.data.local.DatabaseProvider
 import com.example.data.local.entity.Profile
@@ -77,7 +78,7 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
             try {
                 val currentUser = supabaseClient.auth.currentUserOrNull()
                 if (currentUser != null) {
-                    val meta = currentUser.rawUserMetadata
+                    val meta = currentUser.userMetadata
                     val name = meta?.get("full_name")?.jsonPrimitive?.content
                         ?: meta?.get("name")?.jsonPrimitive?.content
                         ?: currentUser.email?.substringBefore("@")
@@ -346,6 +347,7 @@ fun HeroSection(
             onMarkAsRead = { notificationViewModel.markAsRead(it) },
             onMarkAllAsRead = { notificationViewModel.markAllAsRead() },
             onClearAll = { notificationViewModel.clearAll() }
+        )
     }
 }
 
@@ -395,6 +397,18 @@ fun NextPrayerCard() {
                     shadowElevation = 1.dp
                 ) {
                     Column(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        BanglaText(text = prayer.first, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        BanglaText(text = prayer.second, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                    }
+                }
+            }
+        }
+    }
+}
 data class QuickActionItem(
     val id: String,
     val title: String,

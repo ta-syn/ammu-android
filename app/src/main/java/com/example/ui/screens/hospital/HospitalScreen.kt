@@ -130,7 +130,7 @@ fun HospitalScreen(viewModel: HospitalViewModel = viewModel()) {
                 }
             } else {
                 items(appointments) { appointment ->
-                    AppointmentCard(appointment)
+                    AppointmentCard(appointment, onDelete = { viewModel.deleteAppointment(appointment) })
                 }
             }
             
@@ -256,7 +256,7 @@ fun QuickActionCard(title: String, emoji: String, modifier: Modifier = Modifier,
 }
 
 @Composable
-fun AppointmentCard(appointment: Appointment) {
+fun AppointmentCard(appointment: Appointment, onDelete: () -> Unit) {
     val sdfDate = SimpleDateFormat("dd MMM yyyy", Locale("bn", "BD"))
     val sdfTime = SimpleDateFormat("hh:mm a", Locale("bn", "BD"))
     val dateObj = Date(appointment.appointmentDate)
@@ -270,7 +270,7 @@ fun AppointmentCard(appointment: Appointment) {
         shadowElevation = 1.dp,
         modifier = Modifier.fillMaxWidth()
     ) {
-        Row(modifier = Modifier.padding(16.dp)) {
+        Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             // Colored stripe or icon
             Box(
                 modifier = Modifier
@@ -300,12 +300,17 @@ fun AppointmentCard(appointment: Appointment) {
                     BanglaText(text = "কারণ: ${appointment.reason}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f))
                 }
             }
+
+            IconButton(onClick = onDelete) {
+                Icon(Icons.Filled.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
+            }
         }
     }
 }
 
 @Composable
 fun TeleConsultationSection() {
+    val context = LocalContext.current
     Surface(
         color = MaterialTheme.colorScheme.surfaceVariant,
         shape = RoundedCornerShape(16.dp),
@@ -320,7 +325,13 @@ fun TeleConsultationSection() {
                     BanglaText(text = "Praava Health", fontWeight = FontWeight.Bold)
                     BanglaText(text = "ভিডিও কলের মাধ্যমে ডাক্তার", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                Button(onClick = {}, colors = ButtonDefaults.buttonColors(containerColor = GreenPrimary)) {
+                Button(
+                    onClick = {
+                        val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:10648"))
+                        context.startActivity(intent)
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = GreenPrimary)
+                ) {
                     BanglaText("কল করুন")
                 }
             }
@@ -330,7 +341,13 @@ fun TeleConsultationSection() {
                     BanglaText(text = "Doctorola", fontWeight = FontWeight.Bold)
                     BanglaText(text = "ডাক্তার ও হাসপাতাল বুকিং", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                Button(onClick = {}, colors = ButtonDefaults.buttonColors(containerColor = GreenPrimary)) {
+                Button(
+                    onClick = {
+                        val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:09606707070"))
+                        context.startActivity(intent)
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = GreenPrimary)
+                ) {
                     BanglaText("যোগাযোগ")
                 }
             }
@@ -348,13 +365,58 @@ fun AddAppointmentForm(
     var hospitalName by remember { mutableStateOf("") }
     var reason by remember { mutableStateOf("") }
     
-    // For simplicity, hardcoding a future date (tomorrow)
-    val tomorrow = remember {
-        val cal = Calendar.getInstance()
-        cal.add(Calendar.DAY_OF_YEAR, 1)
-        cal.set(Calendar.HOUR_OF_DAY, 10)
-        cal.set(Calendar.MINUTE, 0)
-        cal.timeInMillis
+    val context = LocalContext.current
+    var selectedCalendar by remember { 
+        mutableStateOf(Calendar.getInstance().apply { 
+            add(Calendar.DAY_OF_YEAR, 1)
+            set(Calendar.HOUR_OF_DAY, 10)
+            set(Calendar.MINUTE, 0)
+        }) 
+    }
+    
+    val sdfDate = SimpleDateFormat("dd MMMM, yyyy", Locale("bn", "BD"))
+    val sdfTime = SimpleDateFormat("hh:mm a", Locale("bn", "BD"))
+
+    val datePickerDialog = remember {
+        val currentYear = selectedCalendar.get(Calendar.YEAR)
+        val currentMonth = selectedCalendar.get(Calendar.MONTH)
+        val currentDay = selectedCalendar.get(Calendar.DAY_OF_MONTH)
+        
+        android.app.DatePickerDialog(
+            context,
+            { _, year, month, dayOfMonth ->
+                selectedCalendar = Calendar.getInstance().apply {
+                    timeInMillis = selectedCalendar.timeInMillis
+                    set(Calendar.YEAR, year)
+                    set(Calendar.MONTH, month)
+                    set(Calendar.DAY_OF_MONTH, dayOfMonth)
+                }
+            },
+            currentYear,
+            currentMonth,
+            currentDay
+        ).apply {
+            datePicker.minDate = System.currentTimeMillis() - 1000
+        }
+    }
+
+    val timePickerDialog = remember {
+        val currentHour = selectedCalendar.get(Calendar.HOUR_OF_DAY)
+        val currentMinute = selectedCalendar.get(Calendar.MINUTE)
+        
+        android.app.TimePickerDialog(
+            context,
+            { _, hourOfDay, minute ->
+                selectedCalendar = Calendar.getInstance().apply {
+                    timeInMillis = selectedCalendar.timeInMillis
+                    set(Calendar.HOUR_OF_DAY, hourOfDay)
+                    set(Calendar.MINUTE, minute)
+                }
+            },
+            currentHour,
+            currentMinute,
+            false
+        )
     }
 
     Column(
@@ -398,6 +460,47 @@ fun AddAppointmentForm(
             modifier = Modifier.fillMaxWidth()
         )
         
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        // Pickers row
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Surface(
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable { datePickerDialog.show() },
+                shape = RoundedCornerShape(8.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant
+            ) {
+                Column(
+                    modifier = Modifier.padding(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    BanglaText("তারিখ নির্বাচন", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    BanglaText(sdfDate.format(selectedCalendar.time), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                }
+            }
+            Surface(
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable { timePickerDialog.show() },
+                shape = RoundedCornerShape(8.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant
+            ) {
+                Column(
+                    modifier = Modifier.padding(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    BanglaText("সময় নির্বাচন", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    BanglaText(sdfTime.format(selectedCalendar.time), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                }
+            }
+        }
+        
         Spacer(modifier = Modifier.height(32.dp))
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             OutlinedButton(onClick = onCancel, modifier = Modifier.weight(1f)) {
@@ -405,7 +508,7 @@ fun AddAppointmentForm(
             }
             Button(
                 onClick = {
-                    onSave(doctorName, specialty, hospitalName, tomorrow, reason)
+                    onSave(doctorName, specialty, hospitalName, selectedCalendar.timeInMillis, reason)
                 },
                 modifier = Modifier.weight(1f),
                 colors = ButtonDefaults.buttonColors(containerColor = GreenPrimary),

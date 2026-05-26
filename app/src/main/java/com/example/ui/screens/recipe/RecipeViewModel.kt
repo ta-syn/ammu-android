@@ -143,4 +143,17 @@ class RecipeViewModel(application: Application) : AndroidViewModel(application) 
             _isGenerating.value = false
         }
     }
+
+    fun toggleFavoriteRecipe(recipe: Recipe) {
+        viewModelScope.launch {
+            val updated = recipe.copy(isFavorite = !recipe.isFavorite)
+            dao.insertRecipe(updated)
+        }
+    }
+
+    fun deleteRecipe(recipe: Recipe) {
+        viewModelScope.launch {
+            dao.deleteRecipe(recipe)
+        }
+    }
 }

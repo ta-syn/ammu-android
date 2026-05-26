@@ -134,4 +134,16 @@ interface AmmuDao {
 
     @Delete
     suspend fun deleteExpenseRecord(record: com.example.data.local.entity.ExpenseRecord)
+
+    @Delete
+    suspend fun deleteMedicine(medicine: com.example.data.local.entity.Medicine)
+
+    @Query("DELETE FROM medicine_logs WHERE medicineId = :medicineId")
+    suspend fun deleteLogsForMedicine(medicineId: Int)
+
+    @Delete
+    suspend fun deleteAppointment(appointment: com.example.data.local.entity.Appointment)
+
+    @Delete
+    suspend fun deleteRecipe(recipe: com.example.data.local.entity.Recipe)
 }

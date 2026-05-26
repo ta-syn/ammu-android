@@ -1,7 +1,13 @@
 package com.example.ui.screens.qibla
 
 import android.Manifest
+import android.content.Context
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import androidx.compose.animation.AnimatedVisibility
+import com.example.ui.utils.toBengaliNumber
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
@@ -90,8 +96,33 @@ fun QiblaScreen(viewModel: QiblaViewModel = viewModel()) {
     val animatedAzimuth by animateFloatAsState(
         targetValue = azimuth,
         animationSpec = tween(durationMillis = 200),
-        label = "azimuth"
     )
+
+    val diff = ((qiblaDirection - animatedAzimuth + 360) % 360).roundToInt()
+    val isAligned = diff < 6 || diff > 354
+
+    val context = LocalContext.current
+    LaunchedEffect(isAligned) {
+        if (isAligned) {
+            try {
+                val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+                    vibratorManager.defaultVibrator
+                } else {
+                    @Suppress("DEPRECATION")
+                    context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    vibrator.vibrate(VibrationEffect.createOneShot(80, VibrationEffect.DEFAULT_AMPLITUDE))
+                } else {
+                    @Suppress("DEPRECATION")
+                    vibrator.vibrate(80)
+                }
+            } catch (e: Exception) {
+                // Ignore if permission or hardware fails
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -157,16 +188,16 @@ fun QiblaScreen(viewModel: QiblaViewModel = viewModel()) {
         Box(
             modifier = Modifier
                 .size(280.dp)
-                .background(Color(0xFF132A26), CircleShape), // Dark green nested circle
+                .background(if (isAligned) Color(0xFF0C2B1C) else Color(0xFF132A26), CircleShape), // Dark green nested circle, turns darker emerald when aligned
             contentAlignment = Alignment.Center
         ) {
             // Outer Ring
             Canvas(modifier = Modifier.fillMaxSize().padding(12.dp)) {
                 val radius = size.width / 2
                 drawCircle(
-                    color = Color.White.copy(alpha = 0.1f),
+                    color = if (isAligned) GreenLight.copy(alpha = 0.8f) else Color.White.copy(alpha = 0.1f),
                     radius = radius,
-                    style = Stroke(width = 4.dp.toPx())
+                    style = Stroke(width = if (isAligned) 6.dp.toPx() else 4.dp.toPx())
                 )
                 
                 // Tick marks
@@ -252,8 +283,7 @@ fun QiblaScreen(viewModel: QiblaViewModel = viewModel()) {
         Spacer(modifier = Modifier.weight(0.5f))
 
         // Compass degree, bearing and deviation guide info
-        val diff = ((qiblaDirection - animatedAzimuth + 360) % 360).roundToInt()
-        val isAligned = diff < 6 || diff > 354
+        
         
         Surface(
             color = if (isAligned) Color(0xFF0D3C26) else Color(0xFF1E292B), // Green if aligned, grey-blue otherwise
@@ -312,17 +342,4 @@ fun QiblaScreen(viewModel: QiblaViewModel = viewModel()) {
         }
         Spacer(modifier = Modifier.height(16.dp))
     }
-}
-
-fun toBengaliNumber(number: String): String {
-    val bengaliDigits = arrayOf('০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯')
-    val builder = java.lang.StringBuilder()
-    for (char in number) {
-        if (char in '0'..'9') {
-            builder.append(bengaliDigits[char - '0'])
-        } else {
-            builder.append(char)
-        }
-    }
-    return builder.toString()
 }

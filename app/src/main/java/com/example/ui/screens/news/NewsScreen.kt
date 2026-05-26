@@ -90,14 +90,14 @@ fun NewsScreen(viewModel: NewsViewModel = viewModel()) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF8F9FA))
+                .background(MaterialTheme.colorScheme.background)
                 .padding(padding)
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
                 Spacer(modifier = Modifier.height(24.dp))
-                BanglaText(text = todayDate, color = Color.Gray, fontSize = 14.sp)
+                BanglaText(text = todayDate, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
                 BanglaHeading(text = "আজকের খবর 📰", fontSize = 28.sp)
                 Spacer(modifier = Modifier.height(16.dp))
             }
@@ -106,7 +106,7 @@ fun NewsScreen(viewModel: NewsViewModel = viewModel()) {
             item {
                 Surface(
                     shape = RoundedCornerShape(16.dp),
-                    color = Color(0xFFE8F5E9),
+                    color = MaterialTheme.colorScheme.primaryContainer,
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable { showAiSummary = !showAiSummary }
@@ -114,25 +114,25 @@ fun NewsScreen(viewModel: NewsViewModel = viewModel()) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Filled.AutoAwesome, contentDescription = null, tint = GreenPrimary)
+                                Icon(Icons.Filled.AutoAwesome, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
                                 Spacer(modifier = Modifier.width(8.dp))
-                                BanglaHeading(text = "আজকের সংক্ষিপ্ত সংবাদ", fontSize = 18.sp, color = GreenPrimary)
+                                BanglaHeading(text = "আজকের সংক্ষিপ্ত সংবাদ", fontSize = 18.sp, color = MaterialTheme.colorScheme.onPrimaryContainer)
                             }
                             Icon(
                                 if (showAiSummary) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
                                 contentDescription = null,
-                                tint = GreenPrimary
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
                         
                         AnimatedVisibility(visible = showAiSummary) {
                             Column(modifier = Modifier.padding(top = 12.dp)) {
-                                BanglaText("আজকের শীর্ষ খবরের সারাংশ:", fontWeight = FontWeight.Bold, color = Color.DarkGray)
+                                BanglaText("আজকের শীর্ষ খবরের সারাংশ:", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
                                 Spacer(modifier = Modifier.height(4.dp))
                                 BanglaText(
                                     "বাংলাদেশ ক্রিকেট দল সিরিজে দুর্দান্ত জয় পেয়েছে। ডায়াবেটিস নিয়ন্ত্রণে হাঁটার গুরুত্ব নিয়ে নতুন গবেষণা প্রকাশ হয়েছে। পাশাপাশি রমজানে দ্রব্যমূল্য নিয়ন্ত্রণে সরকার বিশেষ টাস্কফোর্স গঠন করেছে।",
                                     fontSize = 14.sp,
-                                    color = Color.DarkGray
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
                                 Spacer(modifier = Modifier.height(12.dp))
                                 Button(
@@ -187,7 +187,7 @@ fun NewsScreen(viewModel: NewsViewModel = viewModel()) {
             } else if (filteredNews.isEmpty()) {
                 item {
                     Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                        BanglaText("কোনো খবর পাওয়া যায়নি", color = Color.Gray)
+                        BanglaText("কোনো খবর পাওয়া যায়নি", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             } else {
@@ -209,18 +209,18 @@ fun NewsArticleCard(article: NewsArticle, tts: TextToSpeech, isTtsReady: Boolean
 
     Surface(
         shape = RoundedCornerShape(16.dp),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surfaceVariant,
         shadowElevation = 2.dp,
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Surface(color = Color(0xFFE3F2FD), shape = RoundedCornerShape(8.dp)) {
-                    BanglaText(article.category, fontSize = 12.sp, color = Color(0xFF1976D2), modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
+                Surface(color = MaterialTheme.colorScheme.secondaryContainer, shape = RoundedCornerShape(8.dp)) {
+                    BanglaText(article.category, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSecondaryContainer, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
                 }
                 
                 val timeAgo = calculateTimeAgo(article.publishedAt)
-                BanglaText("$timeAgo • ${article.source}", fontSize = 12.sp, color = Color.Gray)
+                BanglaText("$timeAgo • ${article.source}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             
             Spacer(modifier = Modifier.height(12.dp))
@@ -230,7 +230,7 @@ fun NewsArticleCard(article: NewsArticle, tts: TextToSpeech, isTtsReady: Boolean
             BanglaText(
                 text = article.summary,
                 fontSize = 14.sp,
-                color = Color.DarkGray
+                color = MaterialTheme.colorScheme.onSurface
             )
             
             Spacer(modifier = Modifier.height(16.dp))

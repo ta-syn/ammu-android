@@ -55,13 +55,13 @@ fun JournalScreen(viewModel: JournalViewModel = viewModel()) {
             item {
                 Spacer(modifier = Modifier.height(24.dp))
                 BanglaHeading(text = "আপনার ডায়েরি 📓", fontSize = 28.sp)
-                BanglaText("আজ কেমন ছিলেন? কিছু লিখুন...", color = Color.Gray, fontSize = 16.sp)
+                BanglaText("আজ কেমন ছিলেন? কিছু লিখুন...", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 16.sp)
                 Spacer(modifier = Modifier.height(16.dp))
             }
             
             // Mood shortcut row
             item {
-                Text("আজকের মেজাজ:", fontSize = 16.sp, color = Color.DarkGray, fontWeight = FontWeight.Bold)
+                Text("আজকের মেজাজ:", fontSize = 16.sp, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(8.dp))
                 MoodSelectorRow(selectedMood = "", onMoodSelected = { showWriteEntryDialog = true })
                 Spacer(modifier = Modifier.height(16.dp))
@@ -71,7 +71,7 @@ fun JournalScreen(viewModel: JournalViewModel = viewModel()) {
             if (entries.isEmpty()) {
                 item {
                     Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                        BanglaText("এখনও কোনো স্মৃতি লেখা হয়নি।", color = Color.Gray)
+                        BanglaText("এখনও কোনো স্মৃতি লেখা হয়নি।", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             } else {
@@ -161,10 +161,10 @@ fun JournalEntryCard(entry: JournalEntry, onDelete: () -> Unit) {
                         Text(entry.mood, fontSize = 24.sp)
                         Spacer(modifier = Modifier.width(8.dp))
                     }
-                    BanglaText(dateString, color = Color.Gray, fontSize = 12.sp)
+                    BanglaText(dateString, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                 }
                 IconButton(onClick = onDelete, modifier = Modifier.size(24.dp)) {
-                    Icon(Icons.Filled.DeleteOutline, contentDescription = "Delete", tint = Color.LightGray)
+                    Icon(Icons.Filled.DeleteOutline, contentDescription = "Delete", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
             
@@ -254,7 +254,7 @@ fun WriteEntryDialog(
 
                 if (showAiHints) {
                     Spacer(modifier = Modifier.height(12.dp))
-                    BanglaText("যা নিয়ে লিখতে পারেন:", fontWeight = FontWeight.Bold, color = Color.Gray)
+                    BanglaText("যা নিয়ে লিখতে পারেন:", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(modifier = Modifier.height(8.dp))
                     val hints = listOf("আজকের একটি ভালো মুহূর্ত কী ছিল?", "কী আপনাকে সবচেয়ে বেশি খুশি করেছে আজ?", "আজকের একটি কৃতজ্ঞতা (আলহামদুলিল্লাহ)")
                     hints.forEach { hint ->

@@ -1,5 +1,12 @@
 package com.example.ui.screens.dua
 
+import android.content.Context
+import android.content.Intent
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.widget.Toast
+import android.speech.tts.TextToSpeech
+import java.util.Locale
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -220,6 +227,28 @@ fun DuaScreen() {
     var selectedCategory by remember { mutableStateOf<DuaCategory?>(null) }
     var searchQuery by remember { mutableStateOf("") }
     
+    val context = LocalContext.current
+    var isTtsReady by remember { mutableStateOf(false) }
+    val tts = remember {
+        var ttsInstance: TextToSpeech? = null
+        ttsInstance = TextToSpeech(context) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                val result = ttsInstance?.setLanguage(Locale("bn", "BD"))
+                if (result != TextToSpeech.LANG_MISSING_DATA && result != TextToSpeech.LANG_NOT_SUPPORTED) {
+                    isTtsReady = true
+                }
+            }
+        }
+        ttsInstance
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            tts?.stop()
+            tts?.shutdown()
+        }
+    }
+
     val tabs = listOf("দোয়া সমূহ", "বুকমার্ক")
 
     BackHandler(enabled = selectedCategory != null) {
@@ -245,12 +274,19 @@ fun DuaScreen() {
                     titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
-            DuaList(categoryId = selectedCategory!!.id)
+            DuaList(
+                categoryId = selectedCategory!!.id,
+                onPlayAudio = { text ->
+                    if (isTtsReady) {
+                        tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
+                    }
+                }
+            )
         } else {
             // Main View
             TabRow(
                 selectedTabIndex = selectedTabIndex,
-                containerColor = Color(0xFFFCF9F2),
+                containerColor = MaterialTheme.colorScheme.surface,
                 contentColor = MaterialTheme.colorScheme.primary
             ) {
                 tabs.forEachIndexed { index, title ->
@@ -299,7 +335,14 @@ fun DuaScreen() {
                         }
                     } else {
                         items(filtered) { dua ->
-                            DuaCard(dua = dua)
+                            DuaCard(
+                                dua = dua,
+                                onPlayAudio = { text ->
+                                    if (isTtsReady) {
+                                        tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
+                                    }
+                                }
+                            )
                         }
                     }
                 }
@@ -390,7 +433,7 @@ fun DailyDuaWidget(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun DuaList(categoryId: String) {
+fun DuaList(categoryId: String, onPlayAudio: (String) -> Unit) {
     val duas = mockDuas.filter { it.categoryId == categoryId }
     
     LazyColumn(
@@ -411,7 +454,10 @@ fun DuaList(categoryId: String) {
         }
         
         items(duas) { dua ->
-            DuaCard(dua = dua)
+            DuaCard(
+                dua = dua,
+                onPlayAudio = onPlayAudio
+            )
         }
         item {
             Spacer(modifier = Modifier.height(100.dp))
@@ -420,7 +466,7 @@ fun DuaList(categoryId: String) {
 }
 
 @Composable
-fun DuaCard(dua: Dua) {
+fun DuaCard(dua: Dua, onPlayAudio: (String) -> Unit) {
     var isLiked by remember { mutableStateOf(false) }
     
     Surface(
@@ -477,7 +523,7 @@ fun DuaCard(dua: Dua) {
                 )
                 
                 Row {
-                    IconButton(onClick = { /* Play audio */ }) {
+                    IconButton(onClick = { onPlayAudio(dua.translation) }) {
                         Icon(Icons.Filled.PlayCircle, contentDescription = "Play", tint = MaterialTheme.colorScheme.primary)
                     }
                     IconButton(onClick = { isLiked = !isLiked }) {
@@ -487,10 +533,22 @@ fun DuaCard(dua: Dua) {
                             tint = if (isLiked) Color.Red else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    IconButton(onClick = { /* Copy */ }) {
+                    IconButton(onClick = {
+                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        val clip = ClipData.newPlainText("দোয়া", "${dua.title}\n\nআরবি: ${dua.arabic}\n\nউচ্চারণ: ${dua.transliteration}\n\nঅর্থ: ${dua.translation}\n\nসূত্র: ${dua.reference}")
+                        clipboard.setPrimaryClip(clip)
+                        Toast.makeText(context, "দোয়া কপি করা হয়েছে", Toast.LENGTH_SHORT).show()
+                    }) {
                         Icon(Icons.Filled.ContentCopy, contentDescription = "Copy", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    IconButton(onClick = { /* Share */ }) {
+                    IconButton(onClick = {
+                        val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(Intent.EXTRA_SUBJECT, dua.title)
+                            putExtra(Intent.EXTRA_TEXT, "${dua.title}\n\nআরবি: ${dua.arabic}\n\nউচ্চারণ: ${dua.transliteration}\n\nঅর্থ: ${dua.translation}\n\nসূত্র: ${dua.reference}")
+                        }
+                        context.startActivity(Intent.createChooser(sendIntent, "শেয়ার করুন"))
+                    }) {
                         Icon(Icons.Filled.Share, contentDescription = "Share", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }

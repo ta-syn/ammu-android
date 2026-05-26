@@ -17,6 +17,8 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material.icons.filled.VolumeMute
+import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.outlined.Vibration
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -29,12 +31,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.style.TextAlign
 import com.example.ui.components.BanglaHeading
 import com.example.ui.components.BanglaText
 import com.example.ui.theme.GoldLight
 import com.example.ui.theme.GreenPrimary
+import com.example.ui.utils.toBengaliNumber
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+
 
 data class TasbihType(val titleAr: String, val titleBn: String, val target: Int)
 
@@ -61,10 +66,29 @@ fun TasbihScreen() {
     var customTargetValue by remember { mutableStateOf("") }
     var isUnlimited by remember { mutableStateOf(false) }
     var isVibrationEnabled by remember { mutableStateOf(true) }
+    var isSoundEnabled by remember { mutableStateOf(true) }
     
     // Dialogs
     var showCustomTargetDialog by remember { mutableStateOf(false) }
     var showResetDialog by remember { mutableStateOf(false) }
+    
+    val toneGenerator = remember {
+        try {
+            android.media.ToneGenerator(android.media.AudioManager.STREAM_MUSIC, 70)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            try {
+                toneGenerator?.release()
+            } catch (e: Exception) {
+                // ignore
+            }
+        }
+    }
     
     val activeTarget = when {
         isUnlimited -> Int.MAX_VALUE
@@ -128,13 +152,23 @@ fun TasbihScreen() {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Vibration Toggle Button
-                IconButton(onClick = { isVibrationEnabled = !isVibrationEnabled }) {
-                    Icon(
-                        imageVector = if (isVibrationEnabled) Icons.Filled.Vibration else Icons.Filled.VolumeMute,
-                        contentDescription = "Vibration",
-                        tint = if (isVibrationEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    // Vibration Toggle Button
+                    IconButton(onClick = { isVibrationEnabled = !isVibrationEnabled }) {
+                        Icon(
+                            imageVector = if (isVibrationEnabled) Icons.Filled.Vibration else Icons.Outlined.Vibration,
+                            contentDescription = "Vibration",
+                            tint = if (isVibrationEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    // Sound Toggle Button
+                    IconButton(onClick = { isSoundEnabled = !isSoundEnabled }) {
+                        Icon(
+                            imageVector = if (isSoundEnabled) Icons.Filled.VolumeUp else Icons.Filled.VolumeOff,
+                            contentDescription = "Sound",
+                            tint = if (isSoundEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
 
                 // Target selection pills
@@ -247,6 +281,15 @@ fun TasbihScreen() {
                                     isTapped = false
                                 }
                                 
+                                // Trigger digital click sound if enabled
+                                if (isSoundEnabled) {
+                                    try {
+                                        toneGenerator?.startTone(android.media.ToneGenerator.TONE_PROP_BEEP, 40)
+                                    } catch (e: Exception) {
+                                        // ignore
+                                    }
+                                }
+                                
                                 // Trigger haptic vibration if enabled
                                 if (isVibrationEnabled) {
                                     val vibrationEffect = VibrationEffect.createOneShot(20, VibrationEffect.DEFAULT_AMPLITUDE)
@@ -257,6 +300,13 @@ fun TasbihScreen() {
                                     completedRounds++
                                     coroutineScope.launch {
                                         isAnimatingTarget = true
+                                        if (isSoundEnabled) {
+                                            try {
+                                                toneGenerator?.startTone(android.media.ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD, 150)
+                                            } catch (e: Exception) {
+                                                // ignore
+                                            }
+                                        }
                                         if (isVibrationEnabled) {
                                             vibrator.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 100, 50, 100), -1))
                                         }

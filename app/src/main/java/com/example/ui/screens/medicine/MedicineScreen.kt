@@ -107,13 +107,18 @@ fun MedicineScreen(viewModel: MedicineViewModel = viewModel()) {
                     val logsForThisDesc = recentLogs.filter { it.medicineId == medicine.id }.sortedBy { it.scheduledAt }
                     // Filter upcoming logs
                     val upcomingLog = logsForThisDesc.firstOrNull { it.status == "upcoming" }
-                    MedicineCard(medicine, upcomingLog) { logToTake ->
-                        if(logToTake != null) {
-                            viewModel.markLogAsTaken(logToTake)
-                        } else {
-                            viewModel.addManualLogForMedicine(medicine.id, 0)
-                        }
-                    }
+                    MedicineCard(
+                        medicine = medicine,
+                        upcomingLog = upcomingLog,
+                        onTakeMedicine = { logToTake ->
+                            if (logToTake != null) {
+                                viewModel.markLogAsTaken(logToTake)
+                            } else {
+                                viewModel.addManualLogForMedicine(medicine.id, 0)
+                            }
+                        },
+                        onDeleteMedicine = { viewModel.deleteMedicine(medicine) }
+                    )
                 }
             }
 
@@ -170,7 +175,12 @@ fun MedicineScreen(viewModel: MedicineViewModel = viewModel()) {
 }
 
 @Composable
-fun MedicineCard(medicine: Medicine, upcomingLog: MedicineLog?, onTakeMedicine: (MedicineLog?) -> Unit) {
+fun MedicineCard(
+    medicine: Medicine,
+    upcomingLog: MedicineLog?,
+    onTakeMedicine: (MedicineLog?) -> Unit,
+    onDeleteMedicine: () -> Unit
+) {
     Surface(
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surfaceVariant,
@@ -178,24 +188,33 @@ fun MedicineCard(medicine: Medicine, upcomingLog: MedicineLog?, onTakeMedicine: 
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                Column {
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
                     BanglaHeading(text = medicine.medicineName, fontSize = 18.sp, color = GreenPrimary)
                     if (!medicine.banglaName.isNullOrEmpty()) {
-                        BanglaText(text = medicine.banglaName, color = Color.Gray, fontSize = 14.sp)
+                        BanglaText(text = medicine.banglaName, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
                     }
                 }
                 
-                Surface(
-                    color = GreenPrimary.copy(alpha = 0.1f),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    BanglaText(
-                        text = "${medicine.dosage} - ${medicine.frequency}", 
-                        color = GreenPrimary,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                        fontSize = 12.sp
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Surface(
+                        color = GreenPrimary.copy(alpha = 0.1f),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        BanglaText(
+                            text = "${medicine.dosage} - ${medicine.frequency}", 
+                            color = GreenPrimary,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                            fontSize = 12.sp
+                        )
+                    }
+                    IconButton(onClick = onDeleteMedicine) {
+                        Icon(Icons.Filled.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
+                    }
                 }
             }
             
@@ -352,15 +371,15 @@ fun AddMedicineForm(
         // OCR Scanner Placeholder
         Surface(
             shape = RoundedCornerShape(12.dp),
-            color = Color(0xFFF3E5F5),
+            color = MaterialTheme.colorScheme.tertiaryContainer,
             modifier = Modifier.fillMaxWidth()
         ) {
             Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Filled.DocumentScanner, contentDescription = null, tint = Color(0xFF8E24AA))
+                Icon(Icons.Filled.DocumentScanner, contentDescription = null, tint = MaterialTheme.colorScheme.onTertiaryContainer)
                 Spacer(modifier = Modifier.width(12.dp))
                 Column {
-                    BanglaText("প্রেসক্রিপশন স্ক্যান করুন", fontWeight = FontWeight.Bold, color = Color(0xFF8E24AA))
-                    BanglaText("AI এর সাহায্যে তথ্য পূরণ করুন", fontSize = 12.sp, color = Color(0xFF8E24AA))
+                    BanglaText("প্রেসক্রিপশন স্ক্যান করুন", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onTertiaryContainer)
+                    BanglaText("AI এর সাহায্যে তথ্য পূরণ করুন", fontSize = 12.sp, color = MaterialTheme.colorScheme.onTertiaryContainer)
                 }
             }
         }

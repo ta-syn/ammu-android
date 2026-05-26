@@ -37,4 +37,10 @@ class HospitalViewModel(application: Application) : AndroidViewModel(application
             dao.insertAppointment(appointment)
         }
     }
+
+    fun deleteAppointment(appointment: Appointment) {
+        viewModelScope.launch {
+            dao.deleteAppointment(appointment)
+        }
+    }
 }

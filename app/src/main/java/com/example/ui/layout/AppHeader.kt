@@ -1,6 +1,7 @@
 package com.example.ui.layout
 
 import androidx.compose.foundation.background
+import com.example.ui.utils.toBengaliNumber
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -178,17 +179,3 @@ private fun getHijriDateString(): String {
         "১৪ জিলহজ, ১৪৪৬" // Safe fallback
     }
 }
-
-private fun toBengaliNumber(number: String): String {
-    val bengaliDigits = arrayOf('০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯')
-    val builder = java.lang.StringBuilder()
-    for (char in number) {
-        if (char in '0'..'9') {
-            builder.append(bengaliDigits[char - '0'])
-        } else {
-            builder.append(char)
-        }
-    }
-    return builder.toString()
-}
-

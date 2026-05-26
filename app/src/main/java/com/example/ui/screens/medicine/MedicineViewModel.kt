@@ -117,4 +117,11 @@ class MedicineViewModel(application: Application) : AndroidViewModel(application
             dao.insertMedicineLog(log)
         }
     }
+
+    fun deleteMedicine(medicine: Medicine) {
+        viewModelScope.launch {
+            dao.deleteLogsForMedicine(medicine.id)
+            dao.deleteMedicine(medicine)
+        }
+    }
 }

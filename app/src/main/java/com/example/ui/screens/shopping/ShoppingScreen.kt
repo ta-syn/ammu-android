@@ -164,7 +164,7 @@ fun ShoppingScreen(viewModel: ShoppingViewModel = viewModel()) {
                     ) {
                         Icon(Icons.Filled.AddCircleOutline, contentDescription = null, tint = GreenPrimary)
                         Spacer(modifier = Modifier.width(8.dp))
-                        BanglaText("দ্রুত যোগ করুন (প্রোডাক্টের নাম)", color = Color.Gray)
+                        BanglaText("দ্রুত যোগ করুন (প্রোডাক্টের নাম)", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
 
@@ -181,11 +181,11 @@ fun ShoppingScreen(viewModel: ShoppingViewModel = viewModel()) {
                     groupedPending.forEach { (category, categoryItems) ->
                         item {
                             Spacer(modifier = Modifier.height(8.dp))
-                            Surface(color = Color(0xFFE3F2FD), shape = RoundedCornerShape(8.dp)) {
+                            Surface(color = MaterialTheme.colorScheme.secondaryContainer, shape = RoundedCornerShape(8.dp)) {
                                 BanglaText(
                                     text = category,
                                     fontSize = if (isMarketMode) 18.sp else 14.sp,
-                                    color = Color(0xFF1976D2),
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
                                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
                                     fontWeight = FontWeight.Bold
                                 )
@@ -206,7 +206,7 @@ fun ShoppingScreen(viewModel: ShoppingViewModel = viewModel()) {
                     if (checkedItems.isNotEmpty()) {
                         item {
                             Spacer(modifier = Modifier.height(16.dp))
-                            BanglaText("নেওয়া হয়েছে (${checkedItems.size})", color = Color.Gray, fontWeight = FontWeight.Bold)
+                            BanglaText("নেওয়া হয়েছে (${checkedItems.size})", color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold)
                             Spacer(modifier = Modifier.height(8.dp))
                         }
                         items(checkedItems) { item ->
@@ -402,7 +402,7 @@ fun AiShoppingAssistant(
                 value = query,
                 onValueChange = { query = it },
                 label = { BanglaText("কী রান্না করবেন লিখুন...") },
-                placeholder = { BanglaText("যেমন: :মুরগি ভুনা আর খিচুড়ি (৪ জনের জন্য)") },
+                placeholder = { BanglaText("যেমন: মুরগি ভুনা আর খিচুড়ি (৪ জনের জন্য)") },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3
             )
@@ -426,7 +426,7 @@ fun AiShoppingAssistant(
             BanglaText("নিচের উপকরণগুলো লাগবে:", fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(8.dp))
             Surface(
-                color = Color(0xFFF9FAFB),
+                color = MaterialTheme.colorScheme.surfaceVariant,
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp).fillMaxWidth()) {

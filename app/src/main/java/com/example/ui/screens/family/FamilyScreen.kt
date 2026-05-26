@@ -224,6 +224,8 @@ fun StatusCheckInCard() {
 
 @Composable
 fun FamilyMemberCard(member: FamilyMember, onContact: (String, String) -> Unit) {
+    val isDark = isSystemInDarkTheme()
+    val sosRed = if (isDark) Color(0xFFFF8A80) else Color(0xFFD32F2F)
     Surface(
         color = MaterialTheme.colorScheme.surfaceVariant,
         shape = RoundedCornerShape(16.dp),
@@ -289,7 +291,7 @@ fun FamilyMemberCard(member: FamilyMember, onContact: (String, String) -> Unit) 
 @Composable
 fun MemoryTimelinePreview() {
     Surface(
-        color = Color(0xFFFFF3E0),
+        color = MaterialTheme.colorScheme.secondaryContainer,
         shape = RoundedCornerShape(16.dp),
         shadowElevation = 1.dp,
         modifier = Modifier.fillMaxWidth()
@@ -297,14 +299,14 @@ fun MemoryTimelinePreview() {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Filled.PhotoLibrary, contentDescription = null, tint = Color(0xFFEF6C00))
+                    Icon(Icons.Filled.PhotoLibrary, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                     Spacer(modifier = Modifier.width(8.dp))
-                    BanglaHeading("পারিবারিক স্মৃতি", fontSize = 18.sp, color = Color(0xFFEF6C00))
+                    BanglaHeading(text = "পারিবারিক স্মৃতি", fontSize = 18.sp, color = MaterialTheme.colorScheme.primary)
                 }
                 TextButton(onClick = {}) { BanglaText("সব দেখুন") }
             }
             Spacer(modifier = Modifier.height(8.dp))
-            BanglaText("গত ঈদের কিছু চমৎকার মুহূর্ত", fontSize = 14.sp, color = Color.DarkGray)
+            BanglaText("গত ঈদের কিছু চমৎকার মুহূর্ত", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSecondaryContainer)
             Spacer(modifier = Modifier.height(12.dp))
             
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

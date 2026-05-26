@@ -1,6 +1,7 @@
 package com.example.ui.screens.health
 
 import androidx.compose.foundation.background
+import com.example.ui.utils.toBengaliNumber
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -481,17 +482,3 @@ fun getBpStatus(sys: Double, dia: Double): String {
     if (sys >= 130 || dia >= 80) return "উচ্চ রক্তচাপ 🔴"
     return "অজানা"
 }
-
-fun toBengaliNumber(number: String): String {
-    val bengaliDigits = arrayOf('০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯')
-    val builder = StringBuilder()
-    for (char in number) {
-        if (char in '0'..'9') {
-            builder.append(bengaliDigits[char - '0'])
-        } else {
-            builder.append(char)
-        }
-    }
-    return builder.toString()
-}
-

@@ -30,6 +30,7 @@ import com.example.data.local.entity.ExpenseRecord
 import com.example.ui.components.BanglaHeading
 import com.example.ui.components.BanglaText
 import com.example.ui.theme.GreenPrimary
+import com.example.ui.utils.toBengaliNumber
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -78,7 +79,7 @@ fun ExpenseScreen(viewModel: ExpenseViewModel = viewModel()) {
                         ) {
                             BanglaText("এই মাসে মোট খরচ", color = Color.White.copy(alpha = 0.8f))
                             Spacer(modifier = Modifier.height(4.dp))
-                            BanglaHeading("${banglaNumerals(total.toInt())} ৳", fontSize = 36.sp, color = Color.White)
+                            BanglaHeading("${toBengaliNumber(total.toInt().toString())} ৳", fontSize = 36.sp, color = Color.White)
                         }
                     }
                 }
@@ -115,7 +116,7 @@ fun ExpenseScreen(viewModel: ExpenseViewModel = viewModel()) {
                                     Icon(Icons.Filled.Warning, contentDescription = null, tint = warnRed)
                                     Spacer(modifier = Modifier.width(8.dp))
                                     BanglaText(
-                                        "সতর্কতা: আপনার নির্ধারিত বাজেটের ${banglaNumerals(percent.toInt())}% শেষ হয়েছে।",
+                                        "সতর্কতা: আপনার নির্ধারিত বাজেটের ${toBengaliNumber(percent.toInt().toString())}% শেষ হয়েছে।",
                                         color = warnRed,
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Bold
@@ -147,7 +148,7 @@ fun ExpenseScreen(viewModel: ExpenseViewModel = viewModel()) {
                             getYesterdayDate() -> "গতকাল"
                             else -> formatDateBn(date)
                         }
-                        BanglaText(displayDate, color = Color.Gray, fontSize = 14.sp, modifier = Modifier.padding(vertical = 8.dp))
+                        BanglaText(displayDate, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp, modifier = Modifier.padding(vertical = 8.dp))
                     }
                     items(dailyExpenses) { expense ->
                         ExpenseItem(expense, onDelete = { viewModel.deleteExpense(expense) })
@@ -227,7 +228,7 @@ fun ExpenseChart(expenses: List<ExpenseRecord>) {
                             Box(modifier = Modifier.size(12.dp).background(color, CircleShape))
                             Spacer(modifier = Modifier.width(8.dp))
                             BanglaText(name, fontSize = 14.sp, modifier = Modifier.weight(1f))
-                            BanglaText("${banglaNumerals(catTotal.toInt())} ৳", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            BanglaText("${toBengaliNumber(catTotal.toInt().toString())} ৳", fontSize = 14.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -271,7 +272,7 @@ fun ExpenseItem(expense: ExpenseRecord, onDelete: () -> Unit) {
                     BanglaText(expense.description, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
-            BanglaHeading("${banglaNumerals(expense.amount.toInt())} ৳", fontSize = 16.sp, color = MaterialTheme.colorScheme.error)
+            BanglaHeading("${toBengaliNumber(expense.amount.toInt().toString())} ৳", fontSize = 16.sp, color = MaterialTheme.colorScheme.error)
             Spacer(modifier = Modifier.width(8.dp))
             IconButton(onClick = onDelete, modifier = Modifier.size(24.dp)) {
                 Icon(Icons.Filled.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -314,7 +315,7 @@ fun ExpenseBottomSheet(
             )
             Spacer(modifier = Modifier.height(16.dp))
             
-            BanglaText("ক্যাটাগরি", fontSize = 14.sp, color = Color.Gray)
+            BanglaText("ক্যাটাগরি", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(modifier = Modifier.height(8.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 categories.forEachIndexed { index, cat ->
@@ -326,7 +327,7 @@ fun ExpenseBottomSheet(
                         Box(
                             modifier = Modifier
                                 .size(56.dp)
-                                .background(if (isSelected) GreenPrimary else MaterialTheme.colorScheme.surface, CircleShape),
+                                .background(if (isSelected) GreenPrimary else MaterialTheme.colorScheme.surfaceVariant, CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(icons[index], fontSize = 24.sp)
@@ -363,19 +364,7 @@ fun ExpenseBottomSheet(
     }
 }
 
-fun banglaNumerals(number: Int): String {
-    val bengaliDigits = arrayOf('০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯')
-    val str = number.toString()
-    val sb = java.lang.StringBuilder()
-    for (char in str) {
-        if (char.isDigit()) {
-            sb.append(bengaliDigits[char - '0'])
-        } else {
-            sb.append(char)
-        }
-    }
-    return sb.toString()
-}
+// ---------------- Date Formatter Helpers ---------------- //
 
 private fun getCurrentDate(): String {
     return SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())

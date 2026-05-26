@@ -37,7 +37,15 @@ fun RecipeScreen(viewModel: RecipeViewModel = viewModel()) {
     var viewRecipeDetail by remember { mutableStateOf<Recipe?>(null) }
 
     if (viewRecipeDetail != null) {
-        RecipeDetailScreen(recipe = viewRecipeDetail!!, onBack = { viewRecipeDetail = null })
+        RecipeDetailScreen(
+            recipe = viewRecipeDetail!!,
+            onBack = { viewRecipeDetail = null },
+            onToggleFavorite = { viewModel.toggleFavoriteRecipe(viewRecipeDetail!!) },
+            onDeleteRecipe = {
+                viewModel.deleteRecipe(viewRecipeDetail!!)
+                viewRecipeDetail = null
+            }
+        )
         return
     }
 
@@ -256,7 +264,6 @@ fun RecipeCard(recipe: Recipe, onClick: () -> Unit) {
 
 @Composable
 fun MealPlannerSection() {
-    Surface(
     val isDark = isSystemInDarkTheme()
     val plannerBg = if (isDark) Color(0xFF1B2A4A) else Color(0xFFE3F2FD)
     val plannerBlue = if (isDark) Color(0xFF90CAF9) else Color(0xFF1976D2)
@@ -316,7 +323,12 @@ fun RamadanSpecialSection() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RecipeDetailScreen(recipe: Recipe, onBack: () -> Unit) {
+fun RecipeDetailScreen(
+    recipe: Recipe,
+    onBack: () -> Unit,
+    onToggleFavorite: () -> Unit,
+    onDeleteRecipe: () -> Unit
+) {
     var isTimerRunning by remember { mutableStateOf(false) }
     
     Scaffold(
@@ -329,8 +341,11 @@ fun RecipeDetailScreen(recipe: Recipe, onBack: () -> Unit) {
                     }
                 },
                 actions = {
-                    IconButton(onClick = {}) {
+                    IconButton(onClick = onToggleFavorite) {
                         Icon(if (recipe.isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder, contentDescription = "Favorite", tint = Color.Red)
+                    }
+                    IconButton(onClick = onDeleteRecipe) {
+                        Icon(Icons.Filled.Delete, contentDescription = "Delete")
                     }
                     IconButton(onClick = {}) {
                         Icon(Icons.Filled.Share, contentDescription = "Share")
@@ -386,7 +401,7 @@ fun RecipeDetailScreen(recipe: Recipe, onBack: () -> Unit) {
             val stepList = recipe.steps.split("\n").filter { it.isNotBlank() }
             items(stepList.size) { index ->
                 Surface(
-                    color = Color(0xFFF9FAFB),
+                    color = MaterialTheme.colorScheme.surfaceVariant,
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -401,16 +416,16 @@ fun RecipeDetailScreen(recipe: Recipe, onBack: () -> Unit) {
             item {
                 Spacer(modifier = Modifier.height(16.dp))
                 Surface(
-                    color = Color(0xFFFFF3E0),
+                    color = MaterialTheme.colorScheme.tertiaryContainer,
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Filled.Lightbulb, contentDescription = null, tint = Color(0xFFE65100))
+                        Icon(Icons.Filled.Lightbulb, contentDescription = null, tint = MaterialTheme.colorScheme.onTertiaryContainer)
                         Spacer(modifier = Modifier.width(8.dp))
                         Column {
-                            BanglaHeading(text = "টিপস:", fontSize = 14.sp)
-                            BanglaText(text = "রান্না চলার সময় স্ক্রিন অন থাকবে।", fontSize = 12.sp, color = Color.DarkGray)
+                            BanglaHeading(text = "টিপস:", fontSize = 14.sp, color = MaterialTheme.colorScheme.onTertiaryContainer)
+                            BanglaText(text = "রান্না চলার সময় স্ক্রিন অন থাকবে।", fontSize = 12.sp, color = MaterialTheme.colorScheme.onTertiaryContainer)
                         }
                     }
                 }
@@ -473,13 +488,13 @@ fun AiRecipeGenerator(
             Spacer(modifier = Modifier.height(16.dp))
             
             Surface(
-                color = Color(0xFFF9FAFB),
+                color = MaterialTheme.colorScheme.surfaceVariant,
                 shape = RoundedCornerShape(12.dp),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Color.LightGray)
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
             ) {
                 Column(modifier = Modifier.padding(16.dp).fillMaxWidth()) {
                     BanglaHeading(recipe.title)
-                    BanglaText("সময়: ${recipe.prepTime}", color = Color.Gray, fontSize = 12.sp)
+                    BanglaText("সময়: ${recipe.prepTime}", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                     Spacer(modifier = Modifier.height(8.dp))
                     BanglaText("উপকরণ:", fontWeight = FontWeight.Bold, fontSize = 14.sp)
                     BanglaText(recipe.ingredientsList, fontSize = 14.sp)

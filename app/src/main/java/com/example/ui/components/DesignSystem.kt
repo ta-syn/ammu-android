@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.layout.Spacer
 
 import androidx.compose.foundation.layout.defaultMinSize
@@ -117,7 +118,9 @@ fun BanglaText(
     fontSize: TextUnit = TextUnit.Unspecified,
     textAlign: TextAlign? = null,
     lineHeight: TextUnit = TextUnit.Unspecified,
-    textDecoration: TextDecoration? = null
+    textDecoration: TextDecoration? = null,
+    overflow: TextOverflow = TextOverflow.Clip,
+    maxLines: Int = Int.MAX_VALUE
 ) {
     val fontScale = com.example.ui.theme.LocalFontScale.current
     val finalFontSize = if (fontSize != TextUnit.Unspecified && fontSize.isSp) {
@@ -142,7 +145,9 @@ fun BanglaText(
         fontSize = finalFontSize,
         textAlign = textAlign,
         lineHeight = finalLineHeight,
-        textDecoration = textDecoration
+        textDecoration = textDecoration,
+        overflow = overflow,
+        maxLines = maxLines
     )
 }
 
@@ -153,7 +158,9 @@ fun BanglaHeading(
     color: Color = Color.Unspecified,
     fontWeight: FontWeight? = null,
     fontSize: TextUnit = TextUnit.Unspecified,
-    textAlign: TextAlign? = null
+    textAlign: TextAlign? = null,
+    overflow: TextOverflow = TextOverflow.Clip,
+    maxLines: Int = Int.MAX_VALUE
 ) {
     val fontScale = com.example.ui.theme.LocalFontScale.current
     val finalFontSize = if (fontSize != TextUnit.Unspecified && fontSize.isSp) {
@@ -171,7 +178,9 @@ fun BanglaHeading(
         color = color,
         fontWeight = fontWeight,
         fontSize = finalFontSize,
-        textAlign = textAlign
+        textAlign = textAlign,
+        overflow = overflow,
+        maxLines = maxLines
     )
 }
 

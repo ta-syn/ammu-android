@@ -15,6 +15,9 @@ interface AmmuDao {
     @Query("SELECT * FROM profiles LIMIT 1")
     fun getProfile(): Flow<Profile?>
 
+    @Query("SELECT * FROM profiles LIMIT 1")
+    suspend fun getProfileOnce(): Profile?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertProfile(profile: Profile)
     

@@ -113,15 +113,29 @@ fun BanglaText(
     lineHeight: androidx.compose.ui.unit.TextUnit = androidx.compose.ui.unit.TextUnit.Unspecified,
     textDecoration: androidx.compose.ui.text.style.TextDecoration? = null
 ) {
+    val fontScale = com.example.ui.theme.LocalFontScale.current
+    val finalFontSize = if (fontSize != androidx.compose.ui.unit.TextUnit.Unspecified && fontSize.isSp) {
+        (fontSize.value * fontScale).androidx.compose.ui.unit.sp
+    } else if (fontSize == androidx.compose.ui.unit.TextUnit.Unspecified) {
+        (16 * fontScale).androidx.compose.ui.unit.sp
+    } else {
+        fontSize
+    }
+    val finalLineHeight = if (lineHeight != androidx.compose.ui.unit.TextUnit.Unspecified && lineHeight.isSp) {
+        (lineHeight.value * fontScale).androidx.compose.ui.unit.sp
+    } else {
+        lineHeight
+    }
+
     Text(
         text = text,
         modifier = modifier,
         style = MaterialTheme.typography.bodyLarge,
         color = color,
         fontWeight = fontWeight,
-        fontSize = fontSize,
+        fontSize = finalFontSize,
         textAlign = textAlign,
-        lineHeight = lineHeight,
+        lineHeight = finalLineHeight,
         textDecoration = textDecoration
     )
 }
@@ -135,13 +149,22 @@ fun BanglaHeading(
     fontSize: androidx.compose.ui.unit.TextUnit = androidx.compose.ui.unit.TextUnit.Unspecified,
     textAlign: androidx.compose.ui.text.style.TextAlign? = null
 ) {
+    val fontScale = com.example.ui.theme.LocalFontScale.current
+    val finalFontSize = if (fontSize != androidx.compose.ui.unit.TextUnit.Unspecified && fontSize.isSp) {
+        (fontSize.value * fontScale).androidx.compose.ui.unit.sp
+    } else if (fontSize == androidx.compose.ui.unit.TextUnit.Unspecified) {
+        (22 * fontScale).androidx.compose.ui.unit.sp
+    } else {
+        fontSize
+    }
+
     Text(
         text = text,
         modifier = modifier,
         style = MaterialTheme.typography.headlineMedium,
         color = color,
         fontWeight = fontWeight,
-        fontSize = fontSize,
+        fontSize = finalFontSize,
         textAlign = textAlign
     )
 }
@@ -156,11 +179,15 @@ fun AppButton(
     contentColor: Color = MaterialTheme.colorScheme.onPrimary,
     icon: @Composable (() -> Unit)? = null
 ) {
+    val largeButton = com.example.ui.theme.LocalLargeButtonMode.current
+    val fontScale = com.example.ui.theme.LocalFontScale.current
+    val minHeight = if (largeButton) 72.dp else 56.dp
+
     Button(
         onClick = onClick,
         modifier = modifier
             .fillMaxWidth()
-            .defaultMinSize(minHeight = 56.dp),
+            .defaultMinSize(minHeight = minHeight),
         enabled = enabled,
         shape = RoundedCornerShape(Radius.md),
         colors = ButtonDefaults.buttonColors(
@@ -174,7 +201,12 @@ fun AppButton(
             icon()
             androidx.compose.foundation.layout.Spacer(modifier = Modifier.width(Spacing.sm))
         }
-        BanglaText(text = text, color = contentColor, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+        BanglaText(
+            text = text,
+            color = contentColor,
+            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+            fontSize = (16 * fontScale).androidx.compose.ui.unit.sp
+        )
     }
 }
 

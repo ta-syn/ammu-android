@@ -7,6 +7,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -29,11 +31,15 @@ import com.example.ui.components.BanglaHeading
 import com.example.ui.components.BanglaText
 import com.example.ui.theme.GreenPrimary
 import coil.compose.AsyncImage
+import java.util.Calendar
+import java.util.Locale
+import java.text.SimpleDateFormat
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
     val state by viewModel.state.collectAsState()
+    var showEditProfileDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val db = remember { com.example.data.local.DatabaseProvider.getDatabase(context) }
     val profile by db.ammuDao().getProfile().collectAsState(initial = null)
@@ -127,6 +133,9 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                                 ScaledBanglaText("+৮৮০ ১৭১২-৩৪৫৬৭৮", baseSize = 14, color = subtitleColor)
                             }
                             ScaledBanglaText(profile?.locationCity ?: "Dhaka", baseSize = 14, color = subtitleColor)
+                            if (!profile?.dateOfBirth.isNullOrEmpty()) {
+                                ScaledBanglaText("জন্ম: ${profile!!.dateOfBirth!!}", baseSize = 12, color = subtitleColor)
+                            }
                             Spacer(modifier = Modifier.height(4.dp))
                             Surface(
                                 color = primaryColor.copy(alpha = 0.1f),
@@ -141,7 +150,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                                 )
                             }
                         }
-                        IconButton(onClick = { /* Edit Profile */ }) {
+                        IconButton(onClick = { showEditProfileDialog = true }) {
                             Icon(Icons.Filled.Edit, contentDescription = "Edit Profile", tint = primaryColor)
                         }
                     }
@@ -432,6 +441,120 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
             }
         }
     }
+
+    if (showEditProfileDialog) {
+        EditProfileDialog(
+            profile = profile,
+            onDismiss = { showEditProfileDialog = false },
+            onSave = { name, ph, dob, city, avatar ->
+                viewModel.updateProfileInfo(name, ph, dob, city, avatar)
+                showEditProfileDialog = false
+            }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EditProfileDialog(
+    profile: com.example.data.local.entity.Profile?,
+    onDismiss: () -> Unit,
+    onSave: (fullName: String, phone: String, dateOfBirth: String, locationCity: String, avatarUrl: String) -> Unit
+) {
+    val context = LocalContext.current
+    var fullName by remember { mutableStateOf(profile?.fullName ?: "") }
+    var phone by remember { mutableStateOf(profile?.phone ?: "") }
+    var dobState by remember { mutableStateOf(profile?.dateOfBirth ?: "") }
+    var locationCity by remember { mutableStateOf(profile?.locationCity ?: "Dhaka") }
+    var avatarUrl by remember { mutableStateOf(profile?.avatarUrl ?: "") }
+
+    val calendar = remember { Calendar.getInstance() }
+    val datePickerDialog = remember {
+        android.app.DatePickerDialog(
+            context,
+            { _, year, month, day ->
+                val selectedCal = Calendar.getInstance().apply {
+                    set(Calendar.YEAR, year)
+                    set(Calendar.MONTH, month)
+                    set(Calendar.DAY_OF_MONTH, day)
+                }
+                val format = SimpleDateFormat("dd MMMM, yyyy", Locale("bn", "BD"))
+                dobState = format.format(selectedCal.time)
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        )
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { BanglaHeading(text = "প্রোফাইল আপডেট করুন", fontSize = 20.sp) },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedTextField(
+                    value = fullName,
+                    onValueChange = { fullName = it },
+                    label = { BanglaText("পুরো নাম") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = phone,
+                    onValueChange = { phone = it },
+                    label = { BanglaText("মোবাইল নম্বর") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                        keyboardType = androidx.compose.ui.text.input.KeyboardType.Phone
+                    )
+                )
+                OutlinedTextField(
+                    value = dobState,
+                    onValueChange = {},
+                    label = { BanglaText("জন্ম তারিখ") },
+                    readOnly = true,
+                    enabled = false,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { datePickerDialog.show() },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                        disabledBorderColor = MaterialTheme.colorScheme.outline,
+                        disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                )
+                OutlinedTextField(
+                    value = locationCity,
+                    onValueChange = { locationCity = it },
+                    label = { BanglaText("শহর") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = avatarUrl,
+                    onValueChange = { avatarUrl = it },
+                    label = { BanglaText("প্রোফাইল ছবি লিংক (URL)") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onSave(fullName, phone, dobState, locationCity, avatarUrl) },
+                colors = ButtonDefaults.buttonColors(containerColor = GreenPrimary)
+            ) {
+                BanglaText("সংরক্ষণ করুন", color = Color.White)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                BanglaText("বাতিল করুন")
+            }
+        }
+    )
 }
 
 @Composable

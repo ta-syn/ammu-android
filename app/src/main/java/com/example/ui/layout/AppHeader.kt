@@ -41,12 +41,21 @@ import com.example.ui.components.BanglaText
 import com.example.ui.utils.ShareUtils
 import coil.compose.AsyncImage
 
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import com.example.ui.components.NotificationBell
+import com.example.ui.components.NotificationSheet
+import com.example.ui.components.NotificationSharedViewModel
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppHeader(title: String) {
     val context = LocalContext.current
     val db = remember { com.example.data.local.DatabaseProvider.getDatabase(context) }
     val profile by db.ammuDao().getProfile().collectAsState(initial = null)
+    val notificationViewModel: NotificationSharedViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    val notifications by notificationViewModel.notifications.collectAsState()
+    var showNotifSheet by remember { mutableStateOf(false) }
 
     Surface(
         color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
@@ -112,22 +121,12 @@ fun AppHeader(title: String) {
                         tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
-                IconButton(onClick = { /* TODO */ }) {
-                    Box {
-                        Icon(
-                            Icons.Filled.Notifications,
-                            contentDescription = "Notifications",
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                        // Notification Badge
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .background(MaterialTheme.colorScheme.error, CircleShape)
-                                .align(Alignment.TopEnd)
-                        )
-                    }
-                }
+                NotificationBell(
+                    notifications = notifications,
+                    onNotificationClick = { showNotifSheet = true }
+                )
+                
+                Spacer(modifier = Modifier.width(8.dp))
                 
                 Box(
                     modifier = Modifier
@@ -154,6 +153,16 @@ fun AppHeader(title: String) {
                 }
             }
         }
+    }
+
+    if (showNotifSheet) {
+        NotificationSheet(
+            notifications = notifications,
+            onDismiss = { showNotifSheet = false },
+            onMarkAsRead = { notificationViewModel.markAsRead(it) },
+            onMarkAllAsRead = { notificationViewModel.markAllAsRead() },
+            onClearAll = { notificationViewModel.clearAll() }
+        )
     }
 }
 

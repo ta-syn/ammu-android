@@ -157,15 +157,75 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     else -> "system"
                 }
                 val dao = com.example.data.local.DatabaseProvider.getDatabase(getApplication()).ammuDao()
-                val updatedProfile = com.example.data.local.entity.Profile(
-                    id = "default_user",
-                    fullName = "ব্যবহারকারী",
-                    phone = "",
-                    dateOfBirth = "",
-                    preferredFontSize = fontSizeStr,
-                    darkModePreference = themeStr,
-                    notificationEnabled = currentState.masterNotifications
-                )
+                val existing = dao.getProfileOnce()
+                val updatedProfile = if (existing != null) {
+                    existing.copy(
+                        preferredFontSize = fontSizeStr,
+                        darkModePreference = themeStr,
+                        notificationEnabled = currentState.masterNotifications,
+                        updatedAt = System.currentTimeMillis()
+                    )
+                } else {
+                    com.example.data.local.entity.Profile(
+                        id = "default_user",
+                        fullName = "ব্যবহারকারী",
+                        phone = "",
+                        dateOfBirth = "",
+                        preferredFontSize = fontSizeStr,
+                        darkModePreference = themeStr,
+                        notificationEnabled = currentState.masterNotifications,
+                        updatedAt = System.currentTimeMillis()
+                    )
+                }
+                dao.insertProfile(updatedProfile)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun updateProfileInfo(fullName: String, phone: String, dateOfBirth: String, locationCity: String, avatarUrl: String) {
+        viewModelScope.launch {
+            try {
+                val dao = com.example.data.local.DatabaseProvider.getDatabase(getApplication()).ammuDao()
+                val existing = dao.getProfileOnce()
+                val updatedProfile = if (existing != null) {
+                    existing.copy(
+                        fullName = fullName,
+                        phone = phone,
+                        dateOfBirth = dateOfBirth,
+                        locationCity = locationCity,
+                        avatarUrl = avatarUrl,
+                        updatedAt = System.currentTimeMillis()
+                    )
+                } else {
+                    val currentState = _state.value
+                    val fontSizeStr = when (currentState.fontSize) {
+                        0 -> "small"
+                        1 -> "medium"
+                        2 -> "large"
+                        3 -> "xlarge"
+                        else -> "medium"
+                    }
+                    val themeStr = when (currentState.theme) {
+                        0 -> "system"
+                        1 -> "light"
+                        2 -> "dark"
+                        else -> "system"
+                    }
+                    com.example.data.local.entity.Profile(
+                        id = "default_user",
+                        fullName = fullName,
+                        phone = phone,
+                        dateOfBirth = dateOfBirth,
+                        locationCity = locationCity,
+                        avatarUrl = avatarUrl,
+                        preferredFontSize = fontSizeStr,
+                        darkModePreference = themeStr,
+                        notificationEnabled = currentState.masterNotifications,
+                        updatedAt = System.currentTimeMillis()
+                    )
+                }
                 dao.insertProfile(updatedProfile)
             } catch (e: Exception) {
                 e.printStackTrace()

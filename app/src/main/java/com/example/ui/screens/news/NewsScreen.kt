@@ -41,6 +41,8 @@ fun NewsScreen(viewModel: NewsViewModel = viewModel()) {
     val isLoading by viewModel.isLoading.collectAsState()
     
     val context = LocalContext.current
+    val mainHandler = remember { android.os.Handler(android.os.Looper.getMainLooper()) }
+    var activeTtsId by remember { mutableStateOf<String?>(null) }
     var isTtsReady by remember { mutableStateOf(false) }
     val tts = remember {
         var ttsInstance: TextToSpeech? = null
@@ -54,13 +56,49 @@ fun NewsScreen(viewModel: NewsViewModel = viewModel()) {
                 }
             }
         }
+        ttsInstance?.setOnUtteranceProgressListener(object : android.speech.tts.UtteranceProgressListener() {
+            override fun onStart(utteranceId: String?) {
+                mainHandler.post {
+                    activeTtsId = utteranceId
+                }
+            }
+            override fun onDone(utteranceId: String?) {
+                mainHandler.post {
+                    if (activeTtsId == utteranceId) {
+                        activeTtsId = null
+                    }
+                }
+            }
+            @Deprecated("Deprecated in Java")
+            override fun onError(utteranceId: String?) {
+                mainHandler.post {
+                    if (activeTtsId == utteranceId) {
+                        activeTtsId = null
+                    }
+                }
+            }
+            override fun onError(utteranceId: String?, errorCode: Int) {
+                mainHandler.post {
+                    if (activeTtsId == utteranceId) {
+                        activeTtsId = null
+                    }
+                }
+            }
+            override fun onStop(utteranceId: String?, interrupted: Boolean) {
+                mainHandler.post {
+                    if (activeTtsId == utteranceId) {
+                        activeTtsId = null
+                    }
+                }
+            }
+        })
         ttsInstance
     }
 
     DisposableEffect(Unit) {
         onDispose {
-            tts.stop()
-            tts.shutdown()
+            tts?.stop()
+            tts?.shutdown()
         }
     }
 
@@ -135,18 +173,35 @@ fun NewsScreen(viewModel: NewsViewModel = viewModel()) {
                                     color = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
                                 Spacer(modifier = Modifier.height(12.dp))
+                                val isSummaryPlaying = activeTtsId == "ai_summary"
+                                val summaryText = "আজকের শীর্ষ খবরের সারাংশ: বাংলাদেশ ক্রিকেট দল সিরিজে দুর্দান্ত জয় পেয়েছে। ডায়াবেটিস নিয়ন্ত্রণে হাঁটার গুরুত্ব নিয়ে নতুন গবেষণা প্রকাশ হয়েছে। পাশাপাশি রমজানে দ্রব্যমূল্য নিয়ন্ত্রণে সরকার বিশেষ টাস্কফোর্স গঠন করেছে।"
                                 Button(
                                     onClick = { 
-                                        if (isTtsReady) {
-                                            tts.speak("আজকের শীর্ষ খবরের সারাংশ: বাংলাদেশ ক্রিকেট দল সিরিজে দুর্দান্ত জয় পেয়েছে। ডায়াবেটিস নিয়ন্ত্রণে হাঁটার গুরুত্ব নিয়ে নতুন গবেষণা প্রকাশ হয়েছে। পাশাপাশি রমজানে দ্রব্যমূল্য নিয়ন্ত্রণে সরকার বিশেষ টাস্কফোর্স গঠন করেছে।", TextToSpeech.QUEUE_FLUSH, null, null)
+                                        if (isSummaryPlaying) {
+                                            tts?.stop()
+                                            activeTtsId = null
+                                        } else if (isTtsReady) {
+                                            tts?.stop()
+                                            val params = android.os.Bundle().apply {
+                                                putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "ai_summary")
+                                            }
+                                            tts?.speak(summaryText, TextToSpeech.QUEUE_FLUSH, params, "ai_summary")
+                                            activeTtsId = "ai_summary"
                                         }
                                     },
-                                    colors = ButtonDefaults.buttonColors(containerColor = GreenPrimary),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = if (isSummaryPlaying) Color(0xFF2E7D32) else Color(0xFFD32F2F)
+                                    ),
                                     modifier = Modifier.align(Alignment.End)
                                 ) {
-                                    Icon(Icons.Filled.VolumeUp, contentDescription = null, modifier = Modifier.size(18.dp))
+                                    Icon(
+                                        if (isSummaryPlaying) Icons.Filled.VolumeOff else Icons.Filled.VolumeUp,
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(18.dp)
+                                    )
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    BanglaText("শুনুন")
+                                    BanglaText(if (isSummaryPlaying) "থামুন" else "শুনুন", color = Color.White)
                                 }
                             }
                         }
@@ -192,7 +247,25 @@ fun NewsScreen(viewModel: NewsViewModel = viewModel()) {
                 }
             } else {
                 items(filteredNews) { article ->
-                    NewsArticleCard(article = article, tts = tts, isTtsReady = isTtsReady)
+                    val isCurrentPlaying = activeTtsId == article.id
+                    NewsArticleCard(
+                        article = article,
+                        isTtsReady = isTtsReady,
+                        isCurrentPlaying = isCurrentPlaying,
+                        onTtsToggle = {
+                            if (isCurrentPlaying) {
+                                tts?.stop()
+                                activeTtsId = null
+                            } else if (isTtsReady) {
+                                tts?.stop()
+                                val params = android.os.Bundle().apply {
+                                    putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, article.id)
+                                }
+                                tts?.speak(article.summary, TextToSpeech.QUEUE_FLUSH, params, article.id)
+                                activeTtsId = article.id
+                            }
+                        }
+                    )
                 }
             }
             
@@ -204,7 +277,12 @@ fun NewsScreen(viewModel: NewsViewModel = viewModel()) {
 }
 
 @Composable
-fun NewsArticleCard(article: NewsArticle, tts: TextToSpeech, isTtsReady: Boolean) {
+fun NewsArticleCard(
+    article: NewsArticle,
+    isTtsReady: Boolean,
+    isCurrentPlaying: Boolean,
+    onTtsToggle: () -> Unit
+) {
     val context = LocalContext.current
 
     Surface(
@@ -235,18 +313,21 @@ fun NewsArticleCard(article: NewsArticle, tts: TextToSpeech, isTtsReady: Boolean
             
             Spacer(modifier = Modifier.height(16.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                OutlinedButton(
-                    onClick = {
-                        if (isTtsReady) {
-                            tts.speak(article.summary, TextToSpeech.QUEUE_FLUSH, null, null)
-                        }
-                    },
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = GreenPrimary),
+                Button(
+                    onClick = onTtsToggle,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isCurrentPlaying) Color(0xFF2E7D32) else Color(0xFFD32F2F)
+                    ),
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
                 ) {
-                    Icon(Icons.Filled.VolumeUp, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Icon(
+                        if (isCurrentPlaying) Icons.Filled.VolumeOff else Icons.Filled.VolumeUp,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(16.dp)
+                    )
                     Spacer(modifier = Modifier.width(4.dp))
-                    BanglaText("শুনুন", fontSize = 12.sp)
+                    BanglaText(if (isCurrentPlaying) "থামুন" else "শুনুন", fontSize = 12.sp, color = Color.White)
                 }
                 
                 TextButton(

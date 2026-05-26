@@ -50,32 +50,108 @@ private val LightColorScheme =
     error = DangerSoft
   )
 
+val LocalFontScale = staticCompositionLocalOf { 1.0f }
+val LocalLargeButtonMode = staticCompositionLocalOf { false }
+
 @Composable
 fun MyApplicationTheme(
-  darkTheme: Boolean = isSystemInDarkTheme(),
-  // Dynamic color is disabled to force our Islamic Theme
-  dynamicColor: Boolean = false,
+  theme: Int = 0,
+  colorTheme: Int = 0,
+  highContrast: Boolean = false,
+  fontSize: Int = 1,
+  largeButtonMode: Boolean = false,
   content: @Composable () -> Unit,
 ) {
-  val colorScheme =
-    when {
-      dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-        val context = LocalContext.current
-        if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-      }
+  val darkTheme = when (theme) {
+    0 -> isSystemInDarkTheme()
+    1 -> false
+    2 -> true
+    else -> isSystemInDarkTheme()
+  }
 
-      darkTheme -> DarkColorScheme
-      else -> LightColorScheme
-    }
+  val baseColorScheme = if (darkTheme) {
+    darkColorScheme(
+      primary = when (colorTheme) {
+        1 -> Color(0xFF90CAF9)
+        2 -> Color(0xFFE1BEE7)
+        else -> GreenLight
+      },
+      onPrimary = Color(0xFF0A1F1C),
+      primaryContainer = when (colorTheme) {
+        1 -> Color(0xFF1565C0)
+        2 -> Color(0xFF6A1B9A)
+        else -> GreenDark
+      },
+      onPrimaryContainer = GoldAccent,
+      secondary = when (colorTheme) {
+        1 -> Color(0xFF90CAF9)
+        2 -> Color(0xFFE1BEE7)
+        else -> GreenLight
+      },
+      tertiary = GoldAccent,
+      background = if (highContrast) Color.Black else SurfaceDark,
+      surface = if (highContrast) Color.Black else SurfaceDark,
+      onSecondary = Color(0xFF0A1F1C),
+      onTertiary = TextLight,
+      onBackground = TextDark,
+      onSurface = TextDark,
+      error = DangerSoft
+    )
+  } else {
+    lightColorScheme(
+      primary = when (colorTheme) {
+        1 -> Color(0xFF1976D2)
+        2 -> Color(0xFF9C27B0)
+        else -> GreenPrimary
+      },
+      onPrimary = TextOnPrimary,
+      primaryContainer = when (colorTheme) {
+        1 -> Color(0xFFE3F2FD)
+        2 -> Color(0xFFF3E5F5)
+        else -> Color(0xFFE8F5F3)
+      },
+      onPrimaryContainer = when (colorTheme) {
+        1 -> Color(0xFF0D47A1)
+        2 -> Color(0xFF4A148C)
+        else -> Color(0xFF012420)
+      },
+      secondary = when (colorTheme) {
+        1 -> Color(0xFF1976D2)
+        2 -> Color(0xFF9C27B0)
+        else -> GreenPrimary
+      },
+      tertiary = GoldAccent,
+      background = if (highContrast) Color.White else SurfaceLight,
+      surface = if (highContrast) Color.White else SurfaceLight,
+      onSecondary = TextOnPrimary,
+      onTertiary = TextLight,
+      onBackground = TextLight,
+      onSurface = TextLight,
+      error = DangerSoft
+    )
+  }
 
   val view = LocalView.current
   if (!view.isInEditMode) {
     SideEffect {
       val window = (view.context as Activity).window
-      window.statusBarColor = colorScheme.background.toArgb()
+      window.statusBarColor = baseColorScheme.background.toArgb()
       WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
     }
   }
 
-  MaterialTheme(colorScheme = colorScheme, typography = Typography, content = content)
+  val fontScale = when (fontSize) {
+    0 -> 0.85f
+    1 -> 1.0f
+    2 -> 1.15f
+    3 -> 1.30f
+    else -> 1.0f
+  }
+
+  androidx.compose.runtime.CompositionLocalProvider(
+    LocalFontScale provides fontScale,
+    LocalLargeButtonMode provides largeButtonMode
+  ) {
+    MaterialTheme(colorScheme = baseColorScheme, typography = Typography, content = content)
+  }
 }

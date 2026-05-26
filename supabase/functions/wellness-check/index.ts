@@ -24,6 +24,7 @@ Deno.serve(async (_req) => {
       const { data: checkIns } = await supabase
         .from('notifications')
         .select('*')
+        .eq('user_id', profile.id)
         .eq('type', 'family')
         .eq('title', 'ডেইলি চেক-ইন')
         .gte('created_at', todayStart.toISOString());
@@ -31,6 +32,7 @@ Deno.serve(async (_req) => {
       if (!checkIns || checkIns.length === 0) {
         const { data: notif } = await supabase.from('notifications').insert([
           {
+            user_id: profile.id,
             title: 'ডেইলি চেক-ইন',
             message: 'আসসালামু আলাইকুম আম্মু, আপনি কেমন আছেন? পরিবারের সবাইকে জানাতে ভালো থাকার চেক-ইন সম্পন্ন করুন।',
             type: 'family',

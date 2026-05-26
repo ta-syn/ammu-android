@@ -24,6 +24,7 @@ Deno.serve(async (_req) => {
       const { data: existing } = await supabase
         .from('notifications')
         .select('*')
+        .eq('user_id', profile.id)
         .eq('type', 'prayer')
         .eq('title', 'নামাজের সময়')
         .gte('created_at', todayStart.toISOString());
@@ -31,6 +32,7 @@ Deno.serve(async (_req) => {
       if (!existing || existing.length === 0) {
         const { data: notif } = await supabase.from('notifications').insert([
           {
+            user_id: profile.id,
             title: 'নামাজের সময়',
             message: 'আসসালামু আলাইকুম, নামাজের সময় হয়েছে। অনুগ্রহ করে সময়মতো সালাত আদায় করুন।',
             type: 'prayer',

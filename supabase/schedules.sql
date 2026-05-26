@@ -1,5 +1,14 @@
 -- Supabase pg_cron schedules for background tasks
 -- This script should be run in the Supabase SQL Editor
+--
+-- IMPORTANT WARNING:
+-- The HTTP POST calls below contain hardcoded project URLs (https://zbzqyftcmntzskzfyctd.supabase.co)
+-- and a hardcoded Anon Key (Authorization: Bearer eyJhbGci...).
+-- If you are deploying this project on a new/different Supabase instance, you MUST replace:
+-- 1. 'zbzqyftcmntzskzfyctd' with your new Supabase Project ID
+-- 2. The Anon Key in the Authorization headers with your new project's Anon Key.
+-- Otherwise, pg_cron will trigger Edge Functions on the old/wrong project.
+
 
 -- Enable pg_cron extension
 CREATE EXTENSION IF NOT EXISTS pg_cron;

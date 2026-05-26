@@ -44,6 +44,7 @@ Deno.serve(async (_req) => {
       
       const { data: notif } = await supabase.from('notifications').insert([
         {
+          user_id: profile.id,
           title: 'সাপ্তাহিক প্রতিবেদন',
           message: reportMessage,
           type: 'hadith',

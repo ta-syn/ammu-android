@@ -23,7 +23,7 @@ Deno.serve(async (_req) => {
             "X-Title": "Ammu App"
           },
           body: JSON.stringify({
-            model: "google/gemma-3-27b-it:free",
+            model: "openrouter/free",
             messages: [
               { role: "system", content: "তুমি 'আম্মু অ্যাসিস্ট্যান্ট' — বাংলাদেশি মায়েদের জন্য একটি AI সহকারী। আজ সকালের জন্য একটি চমৎকার ছোট ইসলামিক বা স্বাস্থ্য টিপস/উপদেশ দাও বাংলায় (১-২ বাক্য)।" },
               { role: "user", content: "আজকের টিপস দিন।" }

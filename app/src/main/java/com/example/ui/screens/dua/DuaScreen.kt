@@ -467,6 +467,7 @@ fun DuaList(categoryId: String, onPlayAudio: (String) -> Unit) {
 
 @Composable
 fun DuaCard(dua: Dua, onPlayAudio: (String) -> Unit) {
+    val context = LocalContext.current
     var isLiked by remember { mutableStateOf(false) }
     
     Surface(

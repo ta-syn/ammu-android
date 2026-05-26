@@ -56,21 +56,18 @@ class ChatViewModel : ViewModel() {
                 requestMessages.add(OpenRouterMessage(if (msg.isUser) "user" else "assistant", msg.text))
             }
             
+            val models = listOf(
+                "openrouter/free",
+                "google/gemma-2-9b-it:free",
+                "qwen/qwen-2.5-72b-instruct:free",
+                "meta-llama/llama-3-8b-instruct:free"
+            )
+            
             var success = false
-            
-            // 1. Try Gemma 3 (Primary Free Model)
-            try {
-                val req = OpenRouterRequest(model = "google/gemma-3-27b-it:free", messages = requestMessages, stream = true)
-                streamModelResponse(apiKey, req, aiMessageId) { text -> currentText = text }
-                success = true
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-            
-            // 2. Try Llama 3 (Fallback Free Model)
-            if (!success) {
+            for (model in models) {
+                if (success) break
                 try {
-                    val req = OpenRouterRequest(model = "meta-llama/llama-3-8b-instruct:free", messages = requestMessages, stream = true)
+                    val req = OpenRouterRequest(model = model, messages = requestMessages, stream = true)
                     streamModelResponse(apiKey, req, aiMessageId) { text -> currentText = text }
                     success = true
                 } catch (e: Exception) {

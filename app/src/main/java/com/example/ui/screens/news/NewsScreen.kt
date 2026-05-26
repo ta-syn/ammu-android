@@ -1,0 +1,272 @@
+package com.example.ui.screens.news
+
+import android.content.Intent
+import android.net.Uri
+import android.speech.tts.TextToSpeech
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.data.local.entity.NewsArticle
+import com.example.ui.components.BanglaHeading
+import com.example.ui.components.BanglaText
+import com.example.ui.theme.GreenPrimary
+import java.text.SimpleDateFormat
+import java.util.*
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun NewsScreen(viewModel: NewsViewModel = viewModel()) {
+    val allNews by viewModel.allNews.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    
+    val context = LocalContext.current
+    var isTtsReady by remember { mutableStateOf(false) }
+    val tts = remember {
+        var ttsInstance: TextToSpeech? = null
+        ttsInstance = TextToSpeech(context) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                // Ensure Bengali is available. If not, this might fallback to default.
+                // Depending on device, "bn_BD" or "bn_IN" might be supported.
+                val result = ttsInstance?.setLanguage(Locale("bn", "BD"))
+                if (result != TextToSpeech.LANG_MISSING_DATA && result != TextToSpeech.LANG_NOT_SUPPORTED) {
+                    isTtsReady = true
+                }
+            }
+        }
+        ttsInstance
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            tts.stop()
+            tts.shutdown()
+        }
+    }
+
+    val categories = listOf("সব", "দেশ", "আন্তর্জাতিক", "স্বাস্থ্য", "ধর্ম", "বিনোদন", "খেলাধুলা")
+    var selectedCategory by remember { mutableStateOf("সব") }
+    
+    var showAiSummary by remember { mutableStateOf(true) }
+
+    val filteredNews = if (selectedCategory == "সব") {
+        allNews
+    } else {
+        allNews.filter { it.category == selectedCategory }
+    }
+
+    val todayDate = SimpleDateFormat("dd MMMM, EEEE", Locale("bn", "BD")).format(Date())
+
+    Scaffold(
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { viewModel.fetchNews() },
+                containerColor = GreenPrimary
+            ) {
+                Icon(Icons.Filled.Refresh, contentDescription = "Refresh", tint = Color.White)
+            }
+        }
+    ) { padding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFFF8F9FA))
+                .padding(padding)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            item {
+                Spacer(modifier = Modifier.height(24.dp))
+                BanglaText(text = todayDate, color = Color.Gray, fontSize = 14.sp)
+                BanglaHeading(text = "আজকের খবর 📰", fontSize = 28.sp)
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+            
+            // AI Summary section
+            item {
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color(0xFFE8F5E9),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showAiSummary = !showAiSummary }
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Filled.AutoAwesome, contentDescription = null, tint = GreenPrimary)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                BanglaHeading(text = "আজকের সংক্ষিপ্ত সংবাদ", fontSize = 18.sp, color = GreenPrimary)
+                            }
+                            Icon(
+                                if (showAiSummary) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                                contentDescription = null,
+                                tint = GreenPrimary
+                            )
+                        }
+                        
+                        AnimatedVisibility(visible = showAiSummary) {
+                            Column(modifier = Modifier.padding(top = 12.dp)) {
+                                BanglaText("আজকের শীর্ষ খবরের সারাংশ:", fontWeight = FontWeight.Bold, color = Color.DarkGray)
+                                Spacer(modifier = Modifier.height(4.dp))
+                                BanglaText(
+                                    "বাংলাদেশ ক্রিকেট দল সিরিজে দুর্দান্ত জয় পেয়েছে। ডায়াবেটিস নিয়ন্ত্রণে হাঁটার গুরুত্ব নিয়ে নতুন গবেষণা প্রকাশ হয়েছে। পাশাপাশি রমজানে দ্রব্যমূল্য নিয়ন্ত্রণে সরকার বিশেষ টাস্কফোর্স গঠন করেছে।",
+                                    fontSize = 14.sp,
+                                    color = Color.DarkGray
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Button(
+                                    onClick = { 
+                                        if (isTtsReady) {
+                                            tts.speak("আজকের শীর্ষ খবরের সারাংশ: বাংলাদেশ ক্রিকেট দল সিরিজে দুর্দান্ত জয় পেয়েছে। ডায়াবেটিস নিয়ন্ত্রণে হাঁটার গুরুত্ব নিয়ে নতুন গবেষণা প্রকাশ হয়েছে। পাশাপাশি রমজানে দ্রব্যমূল্য নিয়ন্ত্রণে সরকার বিশেষ টাস্কফোর্স গঠন করেছে।", TextToSpeech.QUEUE_FLUSH, null, null)
+                                        }
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = GreenPrimary),
+                                    modifier = Modifier.align(Alignment.End)
+                                ) {
+                                    Icon(Icons.Filled.VolumeUp, contentDescription = null, modifier = Modifier.size(18.dp))
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    BanglaText("শুনুন")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Categories Row
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    categories.forEach { category ->
+                        FilterChip(
+                            selected = selectedCategory == category,
+                            onClick = { selectedCategory = category },
+                            label = { BanglaText(category) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = GreenPrimary,
+                                selectedLabelColor = Color.White
+                            )
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+            
+            if (isLoading) {
+                item {
+                    Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = GreenPrimary)
+                    }
+                }
+            } else if (filteredNews.isEmpty()) {
+                item {
+                    Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                        BanglaText("কোনো খবর পাওয়া যায়নি", color = Color.Gray)
+                    }
+                }
+            } else {
+                items(filteredNews) { article ->
+                    NewsArticleCard(article = article, tts = tts, isTtsReady = isTtsReady)
+                }
+            }
+            
+            item {
+                Spacer(modifier = Modifier.height(100.dp))
+            }
+        }
+    }
+}
+
+@Composable
+fun NewsArticleCard(article: NewsArticle, tts: TextToSpeech, isTtsReady: Boolean) {
+    val context = LocalContext.current
+
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = Color.White,
+        shadowElevation = 2.dp,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Surface(color = Color(0xFFE3F2FD), shape = RoundedCornerShape(8.dp)) {
+                    BanglaText(article.category, fontSize = 12.sp, color = Color(0xFF1976D2), modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
+                }
+                
+                val timeAgo = calculateTimeAgo(article.publishedAt)
+                BanglaText("$timeAgo • ${article.source}", fontSize = 12.sp, color = Color.Gray)
+            }
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            BanglaHeading(text = article.title, fontSize = 18.sp)
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            BanglaText(
+                text = article.summary,
+                fontSize = 14.sp,
+                color = Color.DarkGray
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                OutlinedButton(
+                    onClick = {
+                        if (isTtsReady) {
+                            tts.speak(article.summary, TextToSpeech.QUEUE_FLUSH, null, null)
+                        }
+                    },
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = GreenPrimary),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                ) {
+                    Icon(Icons.Filled.VolumeUp, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    BanglaText("শুনুন", fontSize = 12.sp)
+                }
+                
+                TextButton(
+                    onClick = {
+                        // In real app, open WebView or Browser
+                        val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.prothomalo.com"))
+                        context.startActivity(webIntent)
+                    }
+                ) {
+                    BanglaText("বিস্তারিত পড়ুন", color = GreenPrimary, fontSize = 14.sp)
+                    Icon(Icons.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(16.dp), tint = GreenPrimary)
+                }
+            }
+        }
+    }
+}
+
+fun calculateTimeAgo(timestamp: Long): String {
+    val diff = System.currentTimeMillis() - timestamp
+    val hours = diff / (1000 * 60 * 60)
+    if (hours < 1) return "কিছুক্ষণ আগে"
+    return "$hours ঘণ্টা আগে"
+}

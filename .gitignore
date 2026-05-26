@@ -1,0 +1,40 @@
+# Gradle caches and build folders
+.gradle/
+build/
+**/build/
+.kotlin/
+
+# Android Studio & IntelliJ IDEA settings
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# Keystores, signing keys, and APKs
+*.keystore
+!debug.keystore
+*.jks
+*.pepk
+*.apk
+*.aar
+
+# Local configuration and environment secrets
+local.properties
+secrets.properties
+.env
+.env.local
+.env.*.local
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Native build folders
+.externalNativeBuild/
+.cxx/
+captures/
+
+# Supabase & local temp directories
+supabase/.temp/
+.vscode/

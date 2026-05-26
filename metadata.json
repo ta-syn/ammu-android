@@ -1,0 +1,6 @@
+{
+  "name": "আম্মু",
+  "description": "বাংলাদেশি মায়েদের জন্য AI সহকারী",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

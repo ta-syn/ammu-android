@@ -10,8 +10,8 @@ SELECT cron.schedule(
     '*/5 * * * *',
     $$
     SELECT net.http_post(
-        url:='https://your-project-ref.supabase.co/functions/v1/prayer-notifications',
-        headers:='{"Content-Type": "application/json", "Authorization": "Bearer YOUR_ANON_KEY"}'::jsonb,
+        url:='https://zbzqyftcmntzskzfyctd.supabase.co/functions/v1/prayer-notifications',
+        headers:='{"Content-Type": "application/json", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpienF5ZnRjbW50enNremZ5Y3RkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3ODMzNDgsImV4cCI6MjA5NTM1OTM0OH0.bKV-PHepNBE2NNyq9AiNjtKQoUbYT2pNpbt2dT0sG8g"}'::jsonb,
         body:='{}'::jsonb
     ) as request_id;
     $$
@@ -23,8 +23,8 @@ SELECT cron.schedule(
     '0 0 * * *',
     $$
     SELECT net.http_post(
-        url:='https://your-project-ref.supabase.co/functions/v1/daily-content',
-        headers:='{"Content-Type": "application/json", "Authorization": "Bearer YOUR_ANON_KEY"}'::jsonb,
+        url:='https://zbzqyftcmntzskzfyctd.supabase.co/functions/v1/daily-content',
+        headers:='{"Content-Type": "application/json", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpienF5ZnRjbW50enNremZ5Y3RkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3ODMzNDgsImV4cCI6MjA5NTM1OTM0OH0.bKV-PHepNBE2NNyq9AiNjtKQoUbYT2pNpbt2dT0sG8g"}'::jsonb,
         body:='{}'::jsonb
     ) as request_id;
     $$
@@ -36,8 +36,8 @@ SELECT cron.schedule(
     '* * * * *',
     $$
     SELECT net.http_post(
-        url:='https://your-project-ref.supabase.co/functions/v1/medicine-reminders',
-        headers:='{"Content-Type": "application/json", "Authorization": "Bearer YOUR_ANON_KEY"}'::jsonb,
+        url:='https://zbzqyftcmntzskzfyctd.supabase.co/functions/v1/medicine-reminders',
+        headers:='{"Content-Type": "application/json", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpienF5ZnRjbW50enNremZ5Y3RkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3ODMzNDgsImV4cCI6MjA5NTM1OTM0OH0.bKV-PHepNBE2NNyq9AiNjtKQoUbYT2pNpbt2dT0sG8g"}'::jsonb,
         body:='{}'::jsonb
     ) as request_id;
     $$
@@ -49,8 +49,8 @@ SELECT cron.schedule(
     '0 4 * * *',
     $$
     SELECT net.http_post(
-        url:='https://your-project-ref.supabase.co/functions/v1/wellness-check',
-        headers:='{"Content-Type": "application/json", "Authorization": "Bearer YOUR_ANON_KEY"}'::jsonb,
+        url:='https://zbzqyftcmntzskzfyctd.supabase.co/functions/v1/wellness-check',
+        headers:='{"Content-Type": "application/json", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpienF5ZnRjbW50enNremZ5Y3RkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3ODMzNDgsImV4cCI6MjA5NTM1OTM0OH0.bKV-PHepNBE2NNyq9AiNjtKQoUbYT2pNpbt2dT0sG8g"}'::jsonb,
         body:='{}'::jsonb
     ) as request_id;
     $$
@@ -62,8 +62,8 @@ SELECT cron.schedule(
     '0 3 * * 0',
     $$
     SELECT net.http_post(
-        url:='https://your-project-ref.supabase.co/functions/v1/weekly-report',
-        headers:='{"Content-Type": "application/json", "Authorization": "Bearer YOUR_ANON_KEY"}'::jsonb,
+        url:='https://zbzqyftcmntzskzfyctd.supabase.co/functions/v1/weekly-report',
+        headers:='{"Content-Type": "application/json", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpienF5ZnRjbW50enNremZ5Y3RkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3ODMzNDgsImV4cCI6MjA5NTM1OTM0OH0.bKV-PHepNBE2NNyq9AiNjtKQoUbYT2pNpbt2dT0sG8g"}'::jsonb,
         body:='{}'::jsonb
     ) as request_id;
     $$

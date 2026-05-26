@@ -50,6 +50,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.serialization.json.jsonPrimitive
+import com.example.network.supabaseClient
+import com.example.data.local.DatabaseProvider
+import com.example.data.local.entity.Profile
 import com.example.ui.components.NotificationBell
 import com.example.ui.components.NotificationSheet
 import com.example.ui.components.NotificationSharedViewModel
@@ -58,6 +67,47 @@ import com.example.ui.screens.weather.WeatherUiState
 
 @Composable
 fun HomeScreen(navController: NavController = rememberNavController()) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        scope.launch(Dispatchers.IO) {
+            try {
+                val currentUser = supabaseClient.auth.currentUserOrNull()
+                if (currentUser != null) {
+                    val meta = currentUser.rawUserMetadata
+                    val name = meta?.get("full_name")?.jsonPrimitive?.content
+                        ?: meta?.get("name")?.jsonPrimitive?.content
+                        ?: currentUser.email?.substringBefore("@")
+                        ?: "ব্যবহারকারী"
+                    val avatar = meta?.get("avatar_url")?.jsonPrimitive?.content
+                        ?: meta?.get("picture")?.jsonPrimitive?.content
+
+                    val dao = DatabaseProvider.getDatabase(context).ammuDao()
+                    val existingProfile = dao.getProfile().firstOrNull()
+
+                    val updatedProfile = Profile(
+                        id = currentUser.id,
+                        fullName = name,
+                        avatarUrl = avatar,
+                        phone = existingProfile?.phone ?: "",
+                        dateOfBirth = existingProfile?.dateOfBirth ?: "",
+                        locationCity = existingProfile?.locationCity ?: "Dhaka",
+                        locationLat = existingProfile?.locationLat,
+                        locationLng = existingProfile?.locationLng,
+                        preferredFontSize = existingProfile?.preferredFontSize ?: "large",
+                        subscriptionTier = existingProfile?.subscriptionTier ?: "free",
+                        notificationEnabled = existingProfile?.notificationEnabled ?: true,
+                        darkModePreference = existingProfile?.darkModePreference ?: "system"
+                    )
+                    dao.insertProfile(updatedProfile)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -120,7 +170,7 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
             HealthSummaryCard()
 
             // Today's Hadith Preview
-            HadithPreview()
+            HadithPreview(onClick = { navController.navigate("hadith") })
             
             // Family Activity Card
             FamilyActivityCard()
@@ -471,8 +521,8 @@ fun HealthSummaryCard() {
 }
 
 @Composable
-fun HadithPreview() {
-    CardBase(modifier = Modifier.fillMaxWidth()) {
+fun HadithPreview(onClick: () -> Unit = {}) {
+    CardBase(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
         Row {
             Box(
                 modifier = Modifier

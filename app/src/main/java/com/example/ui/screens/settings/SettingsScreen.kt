@@ -23,16 +23,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.layout.ContentScale
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ui.components.BanglaHeading
 import com.example.ui.components.BanglaText
 import com.example.ui.theme.GreenPrimary
+import coil.compose.AsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
+    val db = remember { com.example.data.local.DatabaseProvider.getDatabase(context) }
+    val profile by db.ammuDao().getProfile().collectAsState(initial = null)
 
     val primaryColor = when (state.colorTheme) {
         0 -> GreenPrimary
@@ -98,16 +102,31 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                         Box(
                             modifier = Modifier
                                 .size(64.dp)
+                                .clip(CircleShape)
                                 .background(primaryColor, CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("আ", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+                            if (!profile?.avatarUrl.isNullOrEmpty()) {
+                                AsyncImage(
+                                    model = profile!!.avatarUrl,
+                                    contentDescription = "Profile Picture",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                val initial = (profile?.fullName ?: "আ").take(1)
+                                Text(initial, color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+                            }
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            ScaledBanglaText("আম্মু", baseSize = 20, fontWeight = FontWeight.Bold)
-                            ScaledBanglaText("+৮৮০ ১৭১২-৩৪৫৬৭৮", baseSize = 14, color = subtitleColor)
-                            ScaledBanglaText("ঢাকা, বাংলাদেশ", baseSize = 14, color = subtitleColor)
+                            ScaledBanglaText(profile?.fullName ?: "ব্যবহারকারী", baseSize = 20, fontWeight = FontWeight.Bold)
+                            if (!profile?.phone.isNullOrEmpty()) {
+                                ScaledBanglaText(profile!!.phone!!, baseSize = 14, color = subtitleColor)
+                            } else {
+                                ScaledBanglaText("+৮৮০ ১৭১২-৩৪৫৬৭৮", baseSize = 14, color = subtitleColor)
+                            }
+                            ScaledBanglaText(profile?.locationCity ?: "Dhaka", baseSize = 14, color = subtitleColor)
                             Spacer(modifier = Modifier.height(4.dp))
                             Surface(
                                 color = primaryColor.copy(alpha = 0.1f),

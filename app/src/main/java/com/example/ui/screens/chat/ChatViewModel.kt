@@ -47,53 +47,38 @@ class ChatViewModel : ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             val aiMessageId = java.util.UUID.randomUUID().toString()
             var currentText = ""
+            val apiKey = BuildConfig.OPENROUTER_API_KEY
             
+            val requestMessages = mutableListOf<OpenRouterMessage>()
+            requestMessages.add(OpenRouterMessage("system", _currentMode.value.systemPrompt))
+            
+            _messages.filter { !it.isAnimating }.takeLast(10).forEach { msg ->
+                requestMessages.add(OpenRouterMessage(if (msg.isUser) "user" else "assistant", msg.text))
+            }
+            
+            var success = false
+            
+            // 1. Try Gemma 3 (Primary Free Model)
             try {
-                val apiKey = BuildConfig.OPENROUTER_API_KEY
-                
-                val requestMessages = mutableListOf<OpenRouterMessage>()
-                requestMessages.add(OpenRouterMessage("system", _currentMode.value.systemPrompt))
-                
-                _messages.filter { !it.isAnimating }.takeLast(10).forEach { msg ->
-                    requestMessages.add(OpenRouterMessage(if (msg.isUser) "user" else "assistant", msg.text))
-                }
-                
-                val req = OpenRouterRequest(messages = requestMessages, stream = true)
-                
-                val response = OpenRouterClient.service.streamChatCompletions("Bearer $apiKey", request = req)
-                
-                _isTyping.value = false
-                _messages.add(ChatMessage(id = aiMessageId, text = "", isUser = false, isAnimating = true))
-
-                response.byteStream().bufferedReader().use { reader ->
-                    var line: kotlin.String?
-                    while (reader.readLine().also { line = it } != null) {
-                        if (line!!.startsWith("data: ")) {
-                            val data = line!!.removePrefix("data: ")
-                            if (data == "[DONE]") break
-                            
-                            try {
-                                val jsonObject = org.json.JSONObject(data)
-                                val choices = jsonObject.optJSONArray("choices")
-                                if (choices != null && choices.length() > 0) {
-                                    val firstChoice = choices.getJSONObject(0)
-                                    val delta = firstChoice.optJSONObject("delta")
-                                    val content = delta?.optString("content")
-                                    if (!content.isNullOrEmpty()) {
-                                        currentText += content
-                                        val index = _messages.indexOfFirst { it.id == aiMessageId }
-                                        if (index != -1) {
-                                            _messages[index] = _messages[index].copy(text = currentText)
-                                        }
-                                    }
-                                }
-                            } catch (e: Exception) {
-                                e.printStackTrace()
-                            }
-                        }
-                    }
-                }
+                val req = OpenRouterRequest(model = "google/gemma-3-27b-it:free", messages = requestMessages, stream = true)
+                streamModelResponse(apiKey, req, aiMessageId) { text -> currentText = text }
+                success = true
             } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            
+            // 2. Try Llama 3 (Fallback Free Model)
+            if (!success) {
+                try {
+                    val req = OpenRouterRequest(model = "meta-llama/llama-3-8b-instruct:free", messages = requestMessages, stream = true)
+                    streamModelResponse(apiKey, req, aiMessageId) { text -> currentText = text }
+                    success = true
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+            
+            if (!success) {
                 _isTyping.value = false
                 currentText = "সমস্যা হচ্ছে — একটু পরে আবার চেষ্টা করুন।"
                 val index = _messages.indexOfFirst { it.id == aiMessageId }
@@ -108,6 +93,56 @@ class ChatViewModel : ViewModel() {
             if (finalIndex != -1) {
                 _messages[finalIndex] = _messages[finalIndex].copy(isAnimating = false)
             }
+        }
+    }
+
+    private suspend fun streamModelResponse(
+        apiKey: String,
+        req: OpenRouterRequest,
+        aiMessageId: String,
+        onProgress: (String) -> Unit
+    ) {
+        val response = OpenRouterClient.service.streamChatCompletions("Bearer $apiKey", request = req)
+        
+        _isTyping.value = false
+        val existingIndex = _messages.indexOfFirst { it.id == aiMessageId }
+        if (existingIndex == -1) {
+            _messages.add(ChatMessage(id = aiMessageId, text = "", isUser = false, isAnimating = true))
+        }
+
+        var currentText = ""
+        response.byteStream().bufferedReader().use { reader ->
+            var line: String?
+            while (reader.readLine().also { line = it } != null) {
+                if (line!!.startsWith("data: ")) {
+                    val data = line!!.removePrefix("data: ")
+                    if (data == "[DONE]") break
+                    
+                    try {
+                        val jsonObject = org.json.JSONObject(data)
+                        val choices = jsonObject.optJSONArray("choices")
+                        if (choices != null && choices.length() > 0) {
+                            val firstChoice = choices.getJSONObject(0)
+                            val delta = firstChoice.optJSONObject("delta")
+                            val content = delta?.optString("content")
+                            if (!content.isNullOrEmpty()) {
+                                currentText += content
+                                onProgress(currentText)
+                                val index = _messages.indexOfFirst { it.id == aiMessageId }
+                                if (index != -1) {
+                                    _messages[index] = _messages[index].copy(text = currentText)
+                                }
+                            }
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+        }
+        
+        if (currentText.isEmpty()) {
+            throw Exception("Empty response from AI model")
         }
     }
 }

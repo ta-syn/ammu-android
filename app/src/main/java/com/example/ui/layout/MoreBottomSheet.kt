@@ -80,29 +80,7 @@ fun MoreBottomSheet(
                             .fillMaxWidth()
                             .clickable {
                                 onDismissRequest()
-                                if (item.id == "quran") {
-                                    onNavigate("quran")
-                                } else if (item.id == "tasbih") {
-                                    onNavigate("tasbih")
-                                } else if (item.id == "dua") {
-                                    onNavigate("dua")
-                                } else if (item.id == "medicine") {
-                                    onNavigate("medicine")
-                                } else if (item.id == "hospital") {
-                                    onNavigate("hospital")
-                                } else if (item.id == "recipe") {
-                                    onNavigate("recipe")
-                                } else if (item.id == "news") {
-                                    onNavigate("news")
-                                } else if (item.id == "shopping") {
-                                    onNavigate("shopping")
-                                } else if (item.id == "family") {
-                                    onNavigate("family")
-                                } else if (item.id == "journal") {
-                                    onNavigate("journal")
-                                } else if (item.id == "settings") {
-                                    onNavigate("settings")
-                                }
+                                onNavigate(item.id)
                             }
                     ) {
                         Text(

@@ -12,6 +12,11 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Star
+import androidx.compose.material.icons.outlined.ChatBubble
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -56,6 +61,9 @@ import com.example.ui.screens.hospital.HospitalScreen
 import com.example.ui.screens.more.MoreScreen
 import com.example.ui.screens.prayer.PrayerScreen
 import com.example.ui.theme.GreenLight
+import com.example.ui.screens.quran.QuranScreen
+import com.example.ui.screens.quran.SurahReaderScreen
+import com.example.ui.screens.hadith.HadithScreen
 
 enum class Screen(val route: String, val title: String, val icon: ImageVector?) {
     Login("login", "লগইন", null),
@@ -79,6 +87,7 @@ enum class Screen(val route: String, val title: String, val icon: ImageVector?) 
     Weather("weather", "আবহাওয়া", null),
     Expense("expense", "খরচ", null),
     Onboarding("onboarding", "স্বাগতম", null),
+    Hadith("hadith", "হাদিস", null),
     More("more", "আরও", Icons.Filled.MoreHoriz);
 
     companion object {
@@ -160,15 +169,27 @@ fun AppNavigation() {
                     bottomNavigationItems.forEach { screen ->
                         val isSelected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
                         val isChat = screen == Screen.Chat
+                        val displayIcon = if (isSelected) {
+                            screen.icon
+                        } else {
+                            when (screen) {
+                                Screen.Home -> Icons.Outlined.Home
+                                Screen.Prayer -> Icons.Outlined.Star
+                                Screen.Chat -> Icons.Outlined.ChatBubble
+                                Screen.Health -> Icons.Outlined.FavoriteBorder
+                                Screen.More -> Icons.Outlined.MoreHoriz
+                                else -> screen.icon
+                            }
+                        }
                         
                         NavigationBarItem(
                             icon = { 
-                                screen.icon?.let { 
+                                displayIcon?.let { 
                                     if (isChat) {
                                         Box(
                                             modifier = Modifier
                                                 .size(48.dp)
-                                                .background(GreenLight, CircleShape),
+                                                .background(if (isSelected) GreenLight else GreenLight.copy(alpha = 0.7f), CircleShape),
                                             contentAlignment = androidx.compose.ui.Alignment.Center
                                         ) {
                                             Icon(it, contentDescription = screen.title, tint = Color.White)
@@ -258,6 +279,16 @@ fun AppNavigation() {
             composable(Screen.Settings.route) { com.example.ui.screens.settings.SettingsScreen() }
             composable(Screen.Weather.route) { com.example.ui.screens.weather.WeatherScreen() }
             composable(Screen.Expense.route) { com.example.ui.screens.expense.ExpenseScreen() }
+            composable(Screen.Quran.route) { 
+                QuranScreen(onNavigateToSurah = { surahId -> navController.navigate("surah_reader/$surahId") })
+            }
+            composable("surah_reader/{surahId}") { backStackEntry ->
+                val surahId = backStackEntry.arguments?.getString("surahId")?.toIntOrNull() ?: 1
+                SurahReaderScreen(surahId = surahId, onBack = { navController.navigateUp() })
+            }
+            composable(Screen.Hadith.route) {
+                HadithScreen(onBack = { navController.navigateUp() })
+            }
         }
 
         

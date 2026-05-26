@@ -55,7 +55,7 @@ fun HealthScreen(healthViewModel: HealthViewModel = viewModel()) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFFCF9F2)) // Warm background
+                .background(MaterialTheme.colorScheme.background) // Warm theme background
                 .padding(padding)
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -145,7 +145,7 @@ fun HealthScreen(healthViewModel: HealthViewModel = viewModel()) {
 fun HealthScoreCard(records: List<HealthRecord>) {
     Surface(
         shape = RoundedCornerShape(16.dp),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surfaceVariant,
         shadowElevation = 2.dp,
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -155,22 +155,22 @@ fun HealthScoreCard(records: List<HealthRecord>) {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                BanglaText(text = "স্বাস্থ্য স্কোর", fontSize = 16.sp, color = Color.Gray)
+                BanglaText(text = "স্বাস্থ্য স্কোর", fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f))
                 Spacer(modifier = Modifier.height(4.dp))
                 Row(verticalAlignment = Alignment.Bottom) {
-                    Text(text = "৮৫", fontSize = 48.sp, fontWeight = FontWeight.Bold, color = GreenPrimary)
-                    Text(text = "/১০০", fontSize = 20.sp, color = Color.Gray, modifier = Modifier.padding(bottom = 8.dp))
+                    Text(text = "৮৫", fontSize = 48.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                    Text(text = "/১০০", fontSize = 20.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f), modifier = Modifier.padding(bottom = 8.dp))
                 }
-                BanglaText(text = "আপনার স্বাস্থ্য স্বাভাবিক আছে", color = GreenPrimary)
+                BanglaText(text = "আপনার স্বাস্থ্য স্বাভাবিক আছে", color = MaterialTheme.colorScheme.primary)
             }
             
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .size(80.dp)
-                    .background(GreenPrimary.copy(alpha = 0.1f), CircleShape)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), CircleShape)
             ) {
-                Icon(Icons.Filled.Favorite, contentDescription = null, tint = GreenPrimary, modifier = Modifier.size(40.dp))
+                Icon(Icons.Filled.Favorite, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(40.dp))
             }
         }
     }
@@ -180,7 +180,7 @@ fun HealthScoreCard(records: List<HealthRecord>) {
 fun QuickAddButton(icon: String, label: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Surface(
         shape = RoundedCornerShape(12.dp),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surfaceVariant,
         shadowElevation = 1.dp,
         modifier = modifier.clickable(onClick = onClick)
     ) {
@@ -190,7 +190,7 @@ fun QuickAddButton(icon: String, label: String, onClick: () -> Unit, modifier: M
         ) {
             Text(text = icon, fontSize = 24.sp)
             Spacer(modifier = Modifier.height(8.dp))
-            BanglaText(text = label, fontSize = 14.sp)
+            BanglaText(text = label, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -237,7 +237,7 @@ fun WeightCard(record: HealthRecord?) {
 fun MetricCard(title: String, icon: String, value: String, unit: String, status: String, date: Long?) {
     Surface(
         shape = RoundedCornerShape(16.dp),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surfaceVariant,
         shadowElevation = 2.dp,
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -245,23 +245,23 @@ fun MetricCard(title: String, icon: String, value: String, unit: String, status:
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(text = icon, fontSize = 20.sp)
                 Spacer(modifier = Modifier.width(8.dp))
-                BanglaHeading(text = title, fontSize = 16.sp, color = Color.DarkGray)
+                BanglaHeading(text = title, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Spacer(modifier = Modifier.height(16.dp))
             Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                 Row(verticalAlignment = Alignment.Bottom) {
-                    Text(text = value, fontSize = 36.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                    Text(text = value, fontSize = 36.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = unit, fontSize = 16.sp, color = Color.Gray, modifier = Modifier.padding(bottom = 6.dp))
+                    Text(text = unit, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f), modifier = Modifier.padding(bottom = 6.dp))
                 }
                 
                 Surface(
-                    color = if (status.contains("স্বাভাবিক")) GreenPrimary.copy(alpha = 0.1f) else Color(0xFFFFF3E0),
+                    color = if (status.contains("স্বাভাবিক")) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.error.copy(alpha = 0.15f),
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     BanglaText(
                         text = status, 
-                        color = if (status.contains("স্বাভাবিক")) GreenPrimary else Color(0xFFE65100),
+                        color = if (status.contains("স্বাভাবিক")) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                         fontSize = 12.sp
                     )
@@ -270,10 +270,10 @@ fun MetricCard(title: String, icon: String, value: String, unit: String, status:
             
             if (date != null) {
                 Spacer(modifier = Modifier.height(16.dp))
-                HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
+                HorizontalDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f))
                 Spacer(modifier = Modifier.height(12.dp))
                 val sdf = SimpleDateFormat("dd MMM, hh:mm a", Locale("bn", "BD"))
-                BanglaText(text = "শেষ রেকর্ড: ${sdf.format(Date(date))}", color = Color.Gray, fontSize = 12.sp)
+                BanglaText(text = "শেষ রেকর্ড: ${sdf.format(Date(date))}", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f), fontSize = 12.sp)
             }
         }
     }
@@ -281,59 +281,61 @@ fun MetricCard(title: String, icon: String, value: String, unit: String, status:
 
 @Composable
 fun SymptomCheckerSection() {
+    val isDark = isSystemInDarkTheme()
     Surface(
         shape = RoundedCornerShape(16.dp),
-        color = Color(0xFFE0F2F1), // Light teal
+        color = if (isDark) Color(0xFF0F3E37) else Color(0xFFE0F2F1), // Adapted teal
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Filled.AutoAwesome, contentDescription = null, tint = GreenPrimary)
+                Icon(Icons.Filled.AutoAwesome, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 Spacer(modifier = Modifier.width(8.dp))
-                BanglaHeading(text = "AI হেলথ অ্যাসিস্ট্যান্ট", color = GreenPrimary)
+                BanglaHeading(text = "AI হেলথ অ্যাসিস্ট্যান্ট", color = MaterialTheme.colorScheme.primary)
             }
             Spacer(modifier = Modifier.height(12.dp))
-            BanglaText(text = "আজ কেমন অনুভব করছেন?", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            BanglaText(text = "আজ কেমন অনুভব করছেন?", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
             Spacer(modifier = Modifier.height(12.dp))
             
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                AssistChip(onClick = {}, label = { BanglaText("মাথা ব্যথা") })
-                AssistChip(onClick = {}, label = { BanglaText("দুর্বলতা") })
-                AssistChip(onClick = {}, label = { BanglaText("মাথা ঘোরা") })
+                AssistChip(onClick = {}, label = { BanglaText("মাথা ব্যথা", color = MaterialTheme.colorScheme.onSurfaceVariant) })
+                AssistChip(onClick = {}, label = { BanglaText("দুর্বলতা", color = MaterialTheme.colorScheme.onSurfaceVariant) })
+                AssistChip(onClick = {}, label = { BanglaText("মাথা ঘোরা", color = MaterialTheme.colorScheme.onSurfaceVariant) })
             }
             
             Spacer(modifier = Modifier.height(12.dp))
             OutlinedTextField(
                 value = "",
                 onValueChange = {},
-                placeholder = { BanglaText("এখানে লিখুন...") },
+                placeholder = { BanglaText("এখানে লিখুন...", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 colors = TextFieldDefaults.colors(
-                    unfocusedContainerColor = Color.White,
-                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
                     unfocusedIndicatorColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent
                 )
             )
             Spacer(modifier = Modifier.height(8.dp))
-            BanglaText(text = "এটি শুধু প্রাথমিক তথ্য। অবশ্যই ডাক্তারের পরামর্শ নিন।", color = Color.Gray, fontSize = 10.sp)
+            BanglaText(text = "এটি শুধু প্রাথমিক তথ্য। অবশ্যই ডাক্তারের পরামর্শ নিন।", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f), fontSize = 10.sp)
         }
     }
 }
 
 @Composable
 fun PeriodTrackerSection() {
+    val isDark = isSystemInDarkTheme()
     Surface(
         shape = RoundedCornerShape(16.dp),
-        color = Color(0xFFFCE4EC), // Light pink
+        color = if (isDark) Color(0xFF3E1220) else Color(0xFFFCE4EC), // Adapted pink
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(text = "🌸", fontSize = 24.sp)
                 Spacer(modifier = Modifier.width(8.dp))
-                BanglaHeading(text = "পিরিয়ড ট্র্যাকার", color = Color(0xFFC2185B))
+                BanglaHeading(text = "পিরিয়ড ট্র্যাকার", color = if (isDark) Color(0xFFFF8DA1) else Color(0xFFC2185B))
             }
             Spacer(modifier = Modifier.height(16.dp))
             Row(
@@ -342,12 +344,15 @@ fun PeriodTrackerSection() {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column {
-                    BanglaText(text = "পরবর্তী সম্ভাব্য তারিখ", color = Color.Gray)
-                    BanglaHeading(text = "১৫ জুন (৫ দিন বাকি)", color = Color.Black, fontSize = 18.sp)
+                    BanglaText(text = "পরবর্তী সম্ভাব্য তারিখ", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f))
+                    BanglaHeading(text = "১৫ জুন (৫ দিন বাকি)", color = MaterialTheme.colorScheme.onSurface, fontSize = 18.sp)
                 }
                 FilledTonalButton(
                     onClick = { },
-                    colors = ButtonDefaults.filledTonalButtonColors(containerColor = Color(0xFFF8BBD0), contentColor = Color(0xFF880E4F))
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        containerColor = if (isDark) Color(0xFF621C34) else Color(0xFFF8BBD0),
+                        contentColor = if (isDark) Color(0xFFFFB4C4) else Color(0xFF880E4F)
+                    )
                 ) {
                     BanglaText(text = "লগ করুন")
                 }

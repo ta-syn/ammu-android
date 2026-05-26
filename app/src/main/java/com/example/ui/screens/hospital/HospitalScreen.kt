@@ -53,7 +53,7 @@ fun HospitalScreen(viewModel: HospitalViewModel = viewModel()) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF9FAFB))
+                .background(MaterialTheme.colorScheme.background)
                 .padding(padding)
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -115,7 +115,7 @@ fun HospitalScreen(viewModel: HospitalViewModel = viewModel()) {
                 item {
                     Surface(
                         shape = RoundedCornerShape(12.dp),
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.surfaceVariant,
                         modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp)
                     ) {
                         Column(
@@ -172,16 +172,19 @@ fun HospitalScreen(viewModel: HospitalViewModel = viewModel()) {
 @Composable
 fun EmergencySection() {
     val context = LocalContext.current
+    val isDark = isSystemInDarkTheme()
+    val emergencyBg = if (isDark) Color(0xFF3B1D21) else Color(0xFFFFEBEE)
+    val emergencyRed = if (isDark) Color(0xFFFF8A80) else Color.Red
     Surface(
-        color = Color(0xFFFFEBEE),
+        color = emergencyBg,
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Filled.Warning, contentDescription = null, tint = Color.Red)
+                Icon(Icons.Filled.Warning, contentDescription = null, tint = emergencyRed)
                 Spacer(modifier = Modifier.width(8.dp))
-                BanglaHeading(text = "জরুরি অবস্থায়", color = Color.Red, fontSize = 18.sp)
+                BanglaHeading(text = "জরুরি অবস্থায়", color = emergencyRed, fontSize = 18.sp)
             }
             Spacer(modifier = Modifier.height(16.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -211,8 +214,10 @@ fun EmergencySection() {
 
 @Composable
 fun EmergencyButton(title: String, number: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    val isDark = isSystemInDarkTheme()
+    val emergencyRed = if (isDark) Color(0xFFFF8A80) else Color.Red
     Surface(
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surfaceVariant,
         shape = RoundedCornerShape(12.dp),
         modifier = modifier.clickable(onClick = onClick)
     ) {
@@ -220,12 +225,12 @@ fun EmergencyButton(title: String, number: String, modifier: Modifier = Modifier
             modifier = Modifier.padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            BanglaText(text = title, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Color.DarkGray)
+            BanglaText(text = title, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(modifier = Modifier.height(4.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Filled.Call, contentDescription = null, tint = Color.Red, modifier = Modifier.size(14.dp))
+                Icon(Icons.Filled.Call, contentDescription = null, tint = emergencyRed, modifier = Modifier.size(14.dp))
                 Spacer(modifier = Modifier.width(4.dp))
-                BanglaText(text = number, fontSize = 16.sp, color = Color.Red, fontWeight = FontWeight.Bold)
+                BanglaText(text = number, fontSize = 16.sp, color = emergencyRed, fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -235,7 +240,7 @@ fun EmergencyButton(title: String, number: String, modifier: Modifier = Modifier
 fun QuickActionCard(title: String, emoji: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Surface(
         shape = RoundedCornerShape(12.dp),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surfaceVariant,
         shadowElevation = 1.dp,
         modifier = modifier.clickable(onClick = onClick)
     ) {
@@ -261,7 +266,7 @@ fun AppointmentCard(appointment: Appointment) {
     
     Surface(
         shape = RoundedCornerShape(16.dp),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surfaceVariant,
         shadowElevation = 1.dp,
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -283,16 +288,16 @@ fun AppointmentCard(appointment: Appointment) {
             
             Column(modifier = Modifier.weight(1f)) {
                 BanglaHeading(text = appointment.doctorName, fontSize = 16.sp)
-                BanglaText(text = "${appointment.specialty} • ${appointment.hospitalName}", fontSize = 13.sp, color = Color.Gray)
+                BanglaText(text = "${appointment.specialty} • ${appointment.hospitalName}", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f))
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Filled.AccessTime, contentDescription = null, modifier = Modifier.size(14.dp), tint = Color.Gray)
+                    Icon(Icons.Filled.AccessTime, contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f))
                     Spacer(modifier = Modifier.width(4.dp))
-                    BanglaText(text = sdfTime.format(dateObj), fontSize = 13.sp, color = Color.DarkGray)
+                    BanglaText(text = sdfTime.format(dateObj), fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface)
                 }
                 if (!appointment.reason.isNullOrEmpty()) {
                     Spacer(modifier = Modifier.height(4.dp))
-                    BanglaText(text = "কারণ: ${appointment.reason}", fontSize = 12.sp, color = Color.Gray)
+                    BanglaText(text = "কারণ: ${appointment.reason}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f))
                 }
             }
         }
@@ -302,7 +307,7 @@ fun AppointmentCard(appointment: Appointment) {
 @Composable
 fun TeleConsultationSection() {
     Surface(
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surfaceVariant,
         shape = RoundedCornerShape(16.dp),
         shadowElevation = 1.dp,
         modifier = Modifier.fillMaxWidth()
@@ -313,7 +318,7 @@ fun TeleConsultationSection() {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Column {
                     BanglaText(text = "Praava Health", fontWeight = FontWeight.Bold)
-                    BanglaText(text = "ভিডিও কলের মাধ্যমে ডাক্তার", fontSize = 12.sp, color = Color.Gray)
+                    BanglaText(text = "ভিডিও কলের মাধ্যমে ডাক্তার", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Button(onClick = {}, colors = ButtonDefaults.buttonColors(containerColor = GreenPrimary)) {
                     BanglaText("কল করুন")
@@ -323,7 +328,7 @@ fun TeleConsultationSection() {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Column {
                     BanglaText(text = "Doctorola", fontWeight = FontWeight.Bold)
-                    BanglaText(text = "ডাক্তার ও হাসপাতাল বুকিং", fontSize = 12.sp, color = Color.Gray)
+                    BanglaText(text = "ডাক্তার ও হাসপাতাল বুকিং", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Button(onClick = {}, colors = ButtonDefaults.buttonColors(containerColor = GreenPrimary)) {
                     BanglaText("যোগাযোগ")

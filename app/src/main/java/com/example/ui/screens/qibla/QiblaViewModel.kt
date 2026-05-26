@@ -29,6 +29,14 @@ class QiblaViewModel(application: Application) : AndroidViewModel(application), 
     
     private val fusedLocationClient = LocationServices.getFusedLocationProviderClient(application)
 
+    private val _hasSensors = MutableStateFlow(true)
+    val hasSensors: StateFlow<Boolean> = _hasSensors.asStateFlow()
+
+    init {
+        val available = rotationSensor != null || (accelerometer != null && magnetometer != null)
+        _hasSensors.value = available
+    }
+
     private val _azimuth = MutableStateFlow(0f)
     val azimuth: StateFlow<Float> = _azimuth.asStateFlow()
 

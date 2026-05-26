@@ -48,7 +48,7 @@ fun FamilyScreen(viewModel: FamilyViewModel = viewModel()) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF9FAFB))
+                .background(MaterialTheme.colorScheme.background)
                 .padding(padding)
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -129,8 +129,11 @@ fun FamilyScreen(viewModel: FamilyViewModel = viewModel()) {
 
 @Composable
 fun EmergencySOSCard(contacts: List<FamilyMember>, onCall: (String) -> Unit) {
+    val isDark = isSystemInDarkTheme()
+    val sosBg = if (isDark) Color(0xFF3B1D21) else Color(0xFFFFEBEE)
+    val sosRed = if (isDark) Color(0xFFFF8A80) else Color(0xFFD32F2F)
     Surface(
-        color = Color(0xFFFFEBEE),
+        color = sosBg,
         shape = RoundedCornerShape(16.dp),
         shadowElevation = 2.dp,
         modifier = Modifier.fillMaxWidth()
@@ -139,9 +142,9 @@ fun EmergencySOSCard(contacts: List<FamilyMember>, onCall: (String) -> Unit) {
             modifier = Modifier.padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            BanglaHeading("জরুরি সাহায্য", color = Color(0xFFD32F2F), fontSize = 22.sp)
+            BanglaHeading("জরুরি সাহায্য", color = sosRed, fontSize = 22.sp)
             Spacer(modifier = Modifier.height(8.dp))
-            BanglaText("জরুরি প্রয়োজনে নিচে চাপ দিন", color = Color.Gray, fontSize = 14.sp)
+            BanglaText("জরুরি প্রয়োজনে নিচে চাপ দিন", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f), fontSize = 14.sp)
             Spacer(modifier = Modifier.height(16.dp))
             
             Button(
@@ -150,7 +153,7 @@ fun EmergencySOSCard(contacts: List<FamilyMember>, onCall: (String) -> Unit) {
                         onCall(contacts.first().phone)
                     }
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F)),
+                colors = ButtonDefaults.buttonColors(containerColor = sosRed),
                 modifier = Modifier.fillMaxWidth().height(60.dp),
                 shape = RoundedCornerShape(30.dp)
             ) {
@@ -164,7 +167,7 @@ fun EmergencySOSCard(contacts: List<FamilyMember>, onCall: (String) -> Unit) {
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     items(contacts) { contact ->
                         Surface(
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.surfaceVariant,
                             shape = RoundedCornerShape(8.dp),
                             modifier = Modifier.clickable { onCall(contact.phone) }
                         ) {
@@ -176,7 +179,7 @@ fun EmergencySOSCard(contacts: List<FamilyMember>, onCall: (String) -> Unit) {
                                     Text(contact.name.take(1), color = Color.White, fontSize = 12.sp)
                                 }
                                 Spacer(modifier = Modifier.width(8.dp))
-                                BanglaText(contact.name, color = Color(0xFFD32F2F))
+                                BanglaText(contact.name, color = sosRed)
                             }
                         }
                     }
@@ -191,7 +194,7 @@ fun StatusCheckInCard() {
     var checkedIn by remember { mutableStateOf(false) }
     
     Surface(
-        color = if (checkedIn) Color(0xFFE8F5E9) else Color.White,
+        color = if (checkedIn) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f) else MaterialTheme.colorScheme.surfaceVariant,
         shape = RoundedCornerShape(16.dp),
         shadowElevation = 1.dp,
         modifier = Modifier.fillMaxWidth()
@@ -202,13 +205,13 @@ fun StatusCheckInCard() {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                BanglaHeading(if (checkedIn) "আজ চেক-ইন করা হয়েছে" else "আপনি কেমন আছেন?", fontSize = 18.sp, color = if (checkedIn) GreenPrimary else Color.Black)
+                BanglaHeading(if (checkedIn) "আজ চেক-ইন করা হয়েছে" else "আপনি কেমন আছেন?", fontSize = 18.sp, color = if (checkedIn) GreenPrimary else MaterialTheme.colorScheme.onSurface)
                 Spacer(modifier = Modifier.height(4.dp))
-                BanglaText("পরিবারের সবাইকে জানাতে নিচে চাপ দিন", color = Color.Gray, fontSize = 12.sp)
+                BanglaText("পরিবারের সবাইকে জানাতে নিচে চাপ দিন", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
             }
             Button(
                 onClick = { checkedIn = true },
-                colors = ButtonDefaults.buttonColors(containerColor = if (checkedIn) Color.Gray else GreenPrimary),
+                colors = ButtonDefaults.buttonColors(containerColor = if (checkedIn) MaterialTheme.colorScheme.outline else GreenPrimary),
                 enabled = !checkedIn
             ) {
                 Icon(if (checkedIn) Icons.Filled.Check else Icons.Filled.FavoriteBorder, contentDescription = null)
@@ -222,7 +225,7 @@ fun StatusCheckInCard() {
 @Composable
 fun FamilyMemberCard(member: FamilyMember, onContact: (String, String) -> Unit) {
     Surface(
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surfaceVariant,
         shape = RoundedCornerShape(16.dp),
         shadowElevation = 1.dp,
         modifier = Modifier.fillMaxWidth()
@@ -241,26 +244,26 @@ fun FamilyMemberCard(member: FamilyMember, onContact: (String, String) -> Unit) 
                         BanglaHeading(member.name, fontSize = 18.sp)
                         if (member.isEmergencyContact) {
                             Spacer(modifier = Modifier.width(8.dp))
-                            Icon(Icons.Filled.Warning, contentDescription = "Emergency", tint = Color(0xFFD32F2F), modifier = Modifier.size(16.dp))
+                            Icon(Icons.Filled.Warning, contentDescription = "Emergency", tint = sosRed, modifier = Modifier.size(16.dp))
                         }
                     }
-                    BanglaText(member.relation, color = Color.Gray, fontSize = 14.sp)
+                    BanglaText(member.relation, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
                 }
             }
             
             if (member.notes.isNotBlank() || member.birthDate.isNotBlank()) {
                 Spacer(modifier = Modifier.height(12.dp))
-                Surface(color = Color(0xFFF9FAFB), shape = RoundedCornerShape(8.dp), modifier = Modifier.fillMaxWidth()) {
+                Surface(color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(8.dp), modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(12.dp)) {
                         if (member.notes.isNotBlank()) {
-                            BanglaText("নোট: ${member.notes}", fontSize = 12.sp, color = Color.DarkGray)
+                            BanglaText("নোট: ${member.notes}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         if (member.birthDate.isNotBlank()) {
                             Spacer(modifier = Modifier.height(4.dp))
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Filled.Cake, contentDescription = null, modifier = Modifier.size(12.dp), tint = Color(0xFFF06292))
                                 Spacer(modifier = Modifier.width(4.dp))
-                                BanglaText("জন্মদিন: ${member.birthDate}", fontSize = 12.sp, color = Color.DarkGray)
+                                BanglaText("জন্মদিন: ${member.birthDate}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
                     }
@@ -269,14 +272,14 @@ fun FamilyMemberCard(member: FamilyMember, onContact: (String, String) -> Unit) 
 
             Spacer(modifier = Modifier.height(16.dp))
             Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
-                IconButton(onClick = { onContact("call", member.phone) }, modifier = Modifier.background(Color(0xFFE8F5E9), CircleShape)) {
-                    Icon(Icons.Filled.Call, contentDescription = "Call", tint = GreenPrimary)
+                IconButton(onClick = { onContact("call", member.phone) }, modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer, CircleShape)) {
+                    Icon(Icons.Filled.Call, contentDescription = "Call", tint = MaterialTheme.colorScheme.primary)
                 }
-                IconButton(onClick = { onContact("sms", member.phone) }, modifier = Modifier.background(Color(0xFFE3F2FD), CircleShape)) {
-                    Icon(Icons.Filled.Message, contentDescription = "Message", tint = Color(0xFF1976D2))
+                IconButton(onClick = { onContact("sms", member.phone) }, modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer, CircleShape)) {
+                    Icon(Icons.Filled.Message, contentDescription = "Message", tint = MaterialTheme.colorScheme.primary)
                 }
-                IconButton(onClick = { onContact("whatsapp", member.phone) }, modifier = Modifier.background(Color(0xFFE8F5E9), CircleShape)) {
-                    Icon(Icons.Filled.Chat, contentDescription = "WhatsApp", tint = Color(0xFF388E3C))
+                IconButton(onClick = { onContact("whatsapp", member.phone) }, modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer, CircleShape)) {
+                    Icon(Icons.Filled.Chat, contentDescription = "WhatsApp", tint = MaterialTheme.colorScheme.primary)
                 }
             }
         }

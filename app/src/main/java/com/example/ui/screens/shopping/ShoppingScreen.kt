@@ -118,7 +118,7 @@ fun ShoppingScreen(viewModel: ShoppingViewModel = viewModel()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(if (isMarketMode) Color.White else Color(0xFFF9FAFB))
+                .background(if (isMarketMode) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.background)
                 .padding(padding)
         ) {
             // Lists tabs
@@ -149,7 +149,7 @@ fun ShoppingScreen(viewModel: ShoppingViewModel = viewModel()) {
             if (selectedList != null) {
                 // Add Quick Item
                 Surface(
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.surfaceVariant,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
@@ -264,7 +264,7 @@ fun ShoppingItemRow(
     onDelete: () -> Unit
 ) {
     Surface(
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surfaceVariant,
         shape = RoundedCornerShape(12.dp),
         shadowElevation = 1.dp,
         modifier = Modifier
@@ -287,20 +287,20 @@ fun ShoppingItemRow(
                     text = item.name,
                     fontSize = if (isMarketMode) 22.sp else 16.sp,
                     fontWeight = if (isMarketMode) FontWeight.Bold else FontWeight.Normal,
-                    color = if (item.isChecked) Color.Gray else Color.Black,
+                    color = if (item.isChecked) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurface,
                     textDecoration = if (item.isChecked) TextDecoration.LineThrough else TextDecoration.None
                 )
                 if (item.quantity.isNotBlank() || item.unit.isNotBlank()) {
                     BanglaText(
                         text = "${item.quantity} ${item.unit}",
                         fontSize = if (isMarketMode) 16.sp else 14.sp,
-                        color = Color.Gray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textDecoration = if (item.isChecked) TextDecoration.LineThrough else TextDecoration.None
                     )
                 }
             }
             IconButton(onClick = onDelete) {
-                Icon(Icons.Filled.Close, contentDescription = "Delete", tint = Color.LightGray)
+                Icon(Icons.Filled.Close, contentDescription = "Delete", tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }

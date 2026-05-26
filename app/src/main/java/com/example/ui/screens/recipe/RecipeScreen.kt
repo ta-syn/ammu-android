@@ -54,7 +54,7 @@ fun RecipeScreen(viewModel: RecipeViewModel = viewModel()) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFFFF9F2)) // warm, appetizing background
+                .background(MaterialTheme.colorScheme.background) // warm, appetizing theme background
                 .padding(padding)
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -68,7 +68,7 @@ fun RecipeScreen(viewModel: RecipeViewModel = viewModel()) {
             // Search Input area
             item {
                 Surface(
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.surfaceVariant,
                     shape = RoundedCornerShape(16.dp),
                     shadowElevation = 2.dp,
                     modifier = Modifier.fillMaxWidth()
@@ -87,8 +87,8 @@ fun RecipeScreen(viewModel: RecipeViewModel = viewModel()) {
                                 }
                             },
                             colors = TextFieldDefaults.colors(
-                                unfocusedContainerColor = Color(0xFFF9FAFB),
-                                focusedContainerColor = Color(0xFFF9FAFB),
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                                focusedContainerColor = MaterialTheme.colorScheme.surface,
                                 unfocusedIndicatorColor = Color.Transparent,
                                 focusedIndicatorColor = Color.Transparent
                             ),
@@ -198,7 +198,7 @@ fun RecipeScreen(viewModel: RecipeViewModel = viewModel()) {
 fun CategoryCard(title: String, emoji: String) {
     Surface(
         shape = RoundedCornerShape(12.dp),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surfaceVariant,
         shadowElevation = 1.dp,
         modifier = Modifier.clickable { }
     ) {
@@ -217,7 +217,7 @@ fun CategoryCard(title: String, emoji: String) {
 fun RecipeCard(recipe: Recipe, onClick: () -> Unit) {
     Surface(
         shape = RoundedCornerShape(16.dp),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surfaceVariant,
         shadowElevation = 1.dp,
         modifier = Modifier
             .fillMaxWidth()
@@ -257,20 +257,24 @@ fun RecipeCard(recipe: Recipe, onClick: () -> Unit) {
 @Composable
 fun MealPlannerSection() {
     Surface(
-        color = Color(0xFFE3F2FD),
+    val isDark = isSystemInDarkTheme()
+    val plannerBg = if (isDark) Color(0xFF1B2A4A) else Color(0xFFE3F2FD)
+    val plannerBlue = if (isDark) Color(0xFF90CAF9) else Color(0xFF1976D2)
+    Surface(
+        color = plannerBg,
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Filled.CalendarMonth, contentDescription = null, tint = Color(0xFF1976D2))
+                Icon(Icons.Filled.CalendarMonth, contentDescription = null, tint = plannerBlue)
                 Spacer(modifier = Modifier.width(8.dp))
-                BanglaHeading(text = "সাপ্তাহিক মিল প্ল্যানার", color = Color(0xFF1976D2), fontSize = 18.sp)
+                BanglaHeading(text = "সাপ্তাহিক মিল প্ল্যানার", color = plannerBlue, fontSize = 18.sp)
             }
             Spacer(modifier = Modifier.height(12.dp))
-            BanglaText(text = "সারা সপ্তাহের রান্নার রুটিন তৈরি করুন এবং স্বয়ংক্রিয়ভাবে বাজারের তালিকা পান।", color = Color.DarkGray, fontSize = 14.sp)
+            BanglaText(text = "সারা সপ্তাহের রান্নার রুটিন তৈরি করুন এবং স্বয়ংক্রিয়ভাবে বাজারের তালিকা পান।", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
             Spacer(modifier = Modifier.height(12.dp))
-            Button(onClick = {}, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2))) {
+            Button(onClick = {}, colors = ButtonDefaults.buttonColors(containerColor = plannerBlue)) {
                 BanglaText("প্ল্যান দেখুন")
             }
         }
@@ -279,8 +283,11 @@ fun MealPlannerSection() {
 
 @Composable
 fun RamadanSpecialSection() {
+    val isDark = isSystemInDarkTheme()
+    val ramadanBg = if (isDark) Color(0xFF2C1B3E) else Color(0xFFF3E5F5)
+    val ramadanPurple = if (isDark) Color(0xFFE040FB) else Color(0xFF6A1B9A)
     Surface(
-        color = Color(0xFFF3E5F5),
+        color = ramadanBg,
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -288,16 +295,16 @@ fun RamadanSpecialSection() {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(text = "🌙", fontSize = 24.sp)
                 Spacer(modifier = Modifier.width(8.dp))
-                BanglaHeading(text = "রমজান স্পেশাল", color = Color(0xFF6A1B9A), fontSize = 18.sp)
+                BanglaHeading(text = "রমজান স্পেশাল", color = ramadanPurple, fontSize = 18.sp)
             }
             Spacer(modifier = Modifier.height(12.dp))
-            BanglaText(text = "ইফতার এবং সেহরির জন্য স্বাস্থ্যকর রেসিপি।", color = Color.DarkGray, fontSize = 14.sp)
+            BanglaText(text = "ইফতার এবং সেহরির জন্য স্বাস্থ্যকর রেসিপি।", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
             Spacer(modifier = Modifier.height(12.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = {}, colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF6A1B9A))) {
+                OutlinedButton(onClick = {}, colors = ButtonDefaults.outlinedButtonColors(contentColor = ramadanPurple)) {
                     BanglaText("ইফতার")
                 }
-                OutlinedButton(onClick = {}, colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF6A1B9A))) {
+                OutlinedButton(onClick = {}, colors = ButtonDefaults.outlinedButtonColors(contentColor = ramadanPurple)) {
                     BanglaText("সেহরি")
                 }
             }
@@ -364,7 +371,7 @@ fun RecipeDetailScreen(recipe: Recipe, onBack: () -> Unit) {
                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 4.dp)) {
                         var checked by remember { mutableStateOf(false) }
                         Checkbox(checked = checked, onCheckedChange = { checked = it })
-                        BanglaText(ingr, color = if(checked) Color.Gray else Color.Black)
+                        BanglaText(ingr, color = if(checked) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurface)
                     }
                 }
                 Spacer(modifier = Modifier.height(8.dp))

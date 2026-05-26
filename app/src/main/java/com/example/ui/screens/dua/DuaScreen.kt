@@ -229,7 +229,7 @@ fun DuaScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFFCF9F2)) // Warm cream background
+            .background(MaterialTheme.colorScheme.background) // Warm theme background
     ) {
         if (selectedCategory != null) {
             // Detailed View
@@ -241,7 +241,7 @@ fun DuaScreen() {
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFFFCF9F2),
+                    containerColor = MaterialTheme.colorScheme.background,
                     titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
@@ -279,8 +279,8 @@ fun DuaScreen() {
                     colors = TextFieldDefaults.colors(
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
-                        focusedContainerColor = Color.White,
-                        unfocusedContainerColor = Color.White
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant
                     ),
                     singleLine = true
                 )
@@ -340,7 +340,7 @@ fun DuaScreen() {
 fun CategoryCard(category: DuaCategory, onClick: () -> Unit) {
     Surface(
         shape = RoundedCornerShape(Radius.lg),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surfaceVariant,
         shadowElevation = 2.dp,
         modifier = Modifier.clickable(onClick = onClick)
     ) {
@@ -425,7 +425,7 @@ fun DuaCard(dua: Dua) {
     
     Surface(
         shape = RoundedCornerShape(Radius.lg),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surfaceVariant,
         shadowElevation = 2.dp,
         modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
     ) {

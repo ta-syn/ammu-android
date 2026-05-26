@@ -50,7 +50,7 @@ fun ExpenseScreen(viewModel: ExpenseViewModel = viewModel()) {
                 Icon(Icons.Filled.Add, contentDescription = "Add Expense")
             }
         },
-        containerColor = Color(0xFFF9FAFB)
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -90,7 +90,7 @@ fun ExpenseScreen(viewModel: ExpenseViewModel = viewModel()) {
                     val percent = (total / budget) * 100
 
                     Surface(
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.surfaceVariant,
                         shape = RoundedCornerShape(12.dp),
                         shadowElevation = 2.dp,
                         modifier = Modifier.fillMaxWidth()
@@ -101,19 +101,22 @@ fun ExpenseScreen(viewModel: ExpenseViewModel = viewModel()) {
                             BanglaText("গত মাসের তুলনায় বাজার খরচ ১৫% বেশি হয়েছে। সাশ্রয়ী হতে বাজারে যাওয়ার আগে তালিকা তৈরি করুন।", fontSize = 14.sp)
                             
                             if (percent >= 80) {
+                                val isDark = isSystemInDarkTheme()
+                                val warnBg = if (isDark) Color(0xFF3B1D21) else Color(0xFFFFEBEE)
+                                val warnRed = if (isDark) Color(0xFFFF8A80) else Color.Red
                                 Spacer(modifier = Modifier.height(12.dp))
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .background(Color(0xFFFFEBEE), RoundedCornerShape(8.dp))
+                                        .background(warnBg, RoundedCornerShape(8.dp))
                                         .padding(8.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Icon(Icons.Filled.Warning, contentDescription = null, tint = Color.Red)
+                                    Icon(Icons.Filled.Warning, contentDescription = null, tint = warnRed)
                                     Spacer(modifier = Modifier.width(8.dp))
                                     BanglaText(
                                         "সতর্কতা: আপনার নির্ধারিত বাজেটের ${banglaNumerals(percent.toInt())}% শেষ হয়েছে।",
-                                        color = Color.Red,
+                                        color = warnRed,
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Bold
                                     )
@@ -181,7 +184,7 @@ fun ExpenseChart(expenses: List<ExpenseRecord>) {
     )
 
     Surface(
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surfaceVariant,
         shape = RoundedCornerShape(12.dp),
         shadowElevation = 2.dp,
         modifier = Modifier.fillMaxWidth()
@@ -244,7 +247,7 @@ fun ExpenseItem(expense: ExpenseRecord, onDelete: () -> Unit) {
     )
 
     Surface(
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surfaceVariant,
         shape = RoundedCornerShape(12.dp),
         shadowElevation = 1.dp,
         modifier = Modifier.fillMaxWidth()
@@ -256,7 +259,7 @@ fun ExpenseItem(expense: ExpenseRecord, onDelete: () -> Unit) {
             Box(
                 modifier = Modifier
                     .size(48.dp)
-                    .background(Color(0xFFF0FDF4), CircleShape),
+                    .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Text(icons[expense.category] ?: "🛍️", fontSize = 24.sp)
@@ -265,13 +268,13 @@ fun ExpenseItem(expense: ExpenseRecord, onDelete: () -> Unit) {
             Column(modifier = Modifier.weight(1f)) {
                 BanglaHeading(expense.category, fontSize = 16.sp)
                 if (!expense.description.isNullOrBlank()) {
-                    BanglaText(expense.description, fontSize = 14.sp, color = Color.Gray)
+                    BanglaText(expense.description, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
-            BanglaHeading("${banglaNumerals(expense.amount.toInt())} ৳", fontSize = 16.sp, color = Color.Red.copy(alpha = 0.8f))
+            BanglaHeading("${banglaNumerals(expense.amount.toInt())} ৳", fontSize = 16.sp, color = MaterialTheme.colorScheme.error)
             Spacer(modifier = Modifier.width(8.dp))
             IconButton(onClick = onDelete, modifier = Modifier.size(24.dp)) {
-                Icon(Icons.Filled.Delete, contentDescription = "Delete", tint = Color.LightGray)
+                Icon(Icons.Filled.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -323,13 +326,13 @@ fun ExpenseBottomSheet(
                         Box(
                             modifier = Modifier
                                 .size(56.dp)
-                                .background(if (isSelected) GreenPrimary else Color(0xFFF3F4F6), CircleShape),
+                                .background(if (isSelected) GreenPrimary else MaterialTheme.colorScheme.surface, CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(icons[index], fontSize = 24.sp)
                         }
                         Spacer(modifier = Modifier.height(4.dp))
-                        BanglaText(cat, fontSize = 12.sp, color = if (isSelected) GreenPrimary else Color.Gray)
+                        BanglaText(cat, fontSize = 12.sp, color = if (isSelected) GreenPrimary else MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
@@ -354,7 +357,7 @@ fun ExpenseBottomSheet(
                 modifier = Modifier.fillMaxWidth().height(50.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = GreenPrimary)
             ) {
-                BanglaText("সংরক্ষণ করুন", fontSize = 16.sp, color = Color.White)
+                BanglaText("সংরক্ষণ করুন", fontSize = 16.sp, color = MaterialTheme.colorScheme.onPrimary)
             }
         }
     }

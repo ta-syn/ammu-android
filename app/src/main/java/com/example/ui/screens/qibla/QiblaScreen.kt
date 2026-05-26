@@ -1,15 +1,21 @@
 package com.example.ui.screens.qibla
 
 import android.Manifest
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.ScreenRotation
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,6 +29,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
@@ -32,6 +39,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ui.components.BanglaHeading
 import com.example.ui.components.BanglaText
 import com.example.ui.theme.GoldLight
+import com.example.ui.theme.GreenLight
+import com.example.ui.theme.GreenPrimary
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
@@ -41,6 +50,7 @@ import kotlin.math.roundToInt
 @Composable
 fun QiblaScreen(viewModel: QiblaViewModel = viewModel()) {
     val lifecycleOwner = LocalLifecycleOwner.current
+    var showCalibrationGuide by remember { mutableStateOf(false) }
 
     val locationPermissions = rememberMultiplePermissionsState(
         permissions = listOf(
@@ -74,6 +84,7 @@ fun QiblaScreen(viewModel: QiblaViewModel = viewModel()) {
     val qiblaDirection by viewModel.qiblaDirection.collectAsState()
     val distance by viewModel.distance.collectAsState()
     val locationName by viewModel.locationName.collectAsState()
+    val hasSensors by viewModel.hasSensors.collectAsState()
 
     // Smooth animation for compass
     val animatedAzimuth by animateFloatAsState(
@@ -85,13 +96,13 @@ fun QiblaScreen(viewModel: QiblaViewModel = viewModel()) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0F172A)) // Dark space-like background
+            .background(Color(0xFF0C1917)) // Clean premium dark Islamic theme background
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(24.dp))
         
-        BanglaHeading(text = "কিবলা কম্পাস", color = Color.White, fontSize = 28.sp)
+        BanglaHeading(text = "কিবলা কম্পাস 🧭", color = Color.White, fontSize = 26.sp)
         
         Spacer(modifier = Modifier.height(8.dp))
         
@@ -103,30 +114,57 @@ fun QiblaScreen(viewModel: QiblaViewModel = viewModel()) {
         
         BanglaText(text = "মক্কা মুকাররমা: ${toBengaliNumber(distance.toString())} কি.মি.", color = Color.Gray, fontSize = 14.sp)
 
+        // Sensor Availability warning
+        if (!hasSensors) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Surface(
+                color = MaterialTheme.colorScheme.errorContainer,
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Filled.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        BanglaText(
+                            text = "ম্যাগনেটিক সেন্সর পাওয়া যায়নি!",
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                        BanglaText(
+                            text = "আপনার ডিভাইসে দিকনির্ণয় করার কম্পাস সেন্সর নেই। অনুগ্রহ করে আনুমানিক ২৯২° কোণ মেপে কিবলা নির্ধারণ করুন।",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f)
+                        )
+                    }
+                }
+            }
+        }
+
         if (!locationPermissions.allPermissionsGranted) {
             Spacer(modifier = Modifier.height(16.dp))
             Button(
                 onClick = { locationPermissions.launchMultiplePermissionRequest() },
                 colors = ButtonDefaults.buttonColors(containerColor = GoldLight, contentColor = Color.Black)
             ) {
-                BanglaText(text = "লোকেশন পারমিশন দিন")
+                BanglaText(text = "সঠিক দূরত্বের জন্য লোকেশন পারমিশন দিন")
             }
         }
 
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.weight(0.5f))
 
         // Compass UI
         Box(
             modifier = Modifier
-                .size(320.dp)
-                .background(Color(0xFF1E293B), CircleShape),
+                .size(280.dp)
+                .background(Color(0xFF132A26), CircleShape), // Dark green nested circle
             contentAlignment = Alignment.Center
         ) {
             // Outer Ring
-            Canvas(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+            Canvas(modifier = Modifier.fillMaxSize().padding(12.dp)) {
                 val radius = size.width / 2
                 drawCircle(
-                    color = Color.LightGray.copy(alpha = 0.2f),
+                    color = Color.White.copy(alpha = 0.1f),
                     radius = radius,
                     style = Stroke(width = 4.dp.toPx())
                 )
@@ -135,8 +173,8 @@ fun QiblaScreen(viewModel: QiblaViewModel = viewModel()) {
                 for (i in 0 until 360 step 15) {
                     val angle = Math.toRadians(i.toDouble() - 90)
                     val isCardinal = i % 90 == 0
-                    val length = if (isCardinal) 20.dp.toPx() else 10.dp.toPx()
-                    val strokeW = if (isCardinal) 4.dp.toPx() else 2.dp.toPx()
+                    val length = if (isCardinal) 18.dp.toPx() else 8.dp.toPx()
+                    val strokeW = if (isCardinal) 3.dp.toPx() else 1.5.dp.toPx()
                     
                     val startX = center.x + (radius - length) * Math.cos(angle).toFloat()
                     val startY = center.y + (radius - length) * Math.sin(angle).toFloat()
@@ -144,7 +182,7 @@ fun QiblaScreen(viewModel: QiblaViewModel = viewModel()) {
                     val endY = center.y + radius * Math.sin(angle).toFloat()
                     
                     drawLine(
-                        color = if (i == 0) Color.Red else Color.Gray,
+                        color = if (i == 0) Color.Red else Color.Gray.copy(alpha = 0.5f),
                         start = Offset(startX, startY),
                         end = Offset(endX, endY),
                         strokeWidth = strokeW,
@@ -165,7 +203,14 @@ fun QiblaScreen(viewModel: QiblaViewModel = viewModel()) {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.fillMaxSize().padding(16.dp)
                 ) {
-                    Text("N", color = Color.Red, fontWeight = FontWeight.Bold, fontSize = 24.sp)
+                    Text("N", color = Color.Red, fontWeight = FontWeight.Bold, fontSize = 22.sp)
+                }
+
+                // South/East/West labels
+                Box(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+                    Text("S", color = Color.White.copy(alpha = 0.5f), fontSize = 16.sp, modifier = Modifier.align(Alignment.BottomCenter))
+                    Text("E", color = Color.White.copy(alpha = 0.5f), fontSize = 16.sp, modifier = Modifier.align(Alignment.CenterEnd))
+                    Text("W", color = Color.White.copy(alpha = 0.5f), fontSize = 16.sp, modifier = Modifier.align(Alignment.CenterStart))
                 }
 
                 // Qibla Indicator Arrow
@@ -173,8 +218,8 @@ fun QiblaScreen(viewModel: QiblaViewModel = viewModel()) {
                     rotate(qiblaDirection) {
                         val path = Path().apply {
                             moveTo(center.x, center.y - (size.height / 2) + 20.dp.toPx())
-                            lineTo(center.x - 15.dp.toPx(), center.y - (size.height / 2) + 50.dp.toPx())
-                            lineTo(center.x + 15.dp.toPx(), center.y - (size.height / 2) + 50.dp.toPx())
+                            lineTo(center.x - 12.dp.toPx(), center.y - (size.height / 2) + 45.dp.toPx())
+                            lineTo(center.x + 12.dp.toPx(), center.y - (size.height / 2) + 45.dp.toPx())
                             close()
                         }
                         drawPath(path, color = GoldLight)
@@ -186,12 +231,12 @@ fun QiblaScreen(viewModel: QiblaViewModel = viewModel()) {
                     shape = CircleShape,
                     color = Color.Black,
                     border = BorderStroke(2.dp, GoldLight),
-                    modifier = Modifier.size(64.dp)
+                    modifier = Modifier.size(56.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         // Drawing a simple Kaaba rect if SVG not available
-                        Canvas(modifier = Modifier.size(24.dp)) {
-                            drawRect(color = Color.DarkGray)
+                        Canvas(modifier = Modifier.size(20.dp)) {
+                            drawRect(color = Color(0xFF1E1E1E))
                             // Gold strip
                             drawRect(
                                 color = GoldLight,
@@ -204,42 +249,74 @@ fun QiblaScreen(viewModel: QiblaViewModel = viewModel()) {
             }
         }
 
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.weight(0.5f))
+
+        // Compass degree, bearing and deviation guide info
+        val diff = ((qiblaDirection - animatedAzimuth + 360) % 360).roundToInt()
+        val isAligned = diff < 6 || diff > 354
         
-        // Qibla direction info
         Surface(
-            color = Color(0xFF1E293B).copy(alpha = 0.8f),
-            shape = MaterialTheme.shapes.medium,
-            modifier = Modifier.padding(bottom = 32.dp)
+            color = if (isAligned) Color(0xFF0D3C26) else Color(0xFF1E292B), // Green if aligned, grey-blue otherwise
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier.padding(bottom = 8.dp)
         ) {
             Column(
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                BanglaText(text = "কিবলা দিক", color = Color.White)
-                Row(verticalAlignment = Alignment.Bottom) {
-                    Text(
-                        text = toBengaliNumber(qiblaDirection.roundToInt().toString()),
-                        fontSize = 32.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = GoldLight
-                    )
-                    Text(text = "°", fontSize = 24.sp, color = GoldLight)
-                }
+                BanglaText(text = "কিবলার কোণ: ${toBengaliNumber(qiblaDirection.roundToInt().toString())}°", color = Color.LightGray)
+                Spacer(modifier = Modifier.height(4.dp))
                 
-                val currentDirectionDiff = Math.abs((animatedAzimuth - qiblaDirection + 540) % 360 - 180)
-                if (currentDirectionDiff < 5f) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    BanglaText(text = "আপনি সঠিক দিকে আছেন!", color = Color.Green, fontSize = 14.sp)
+                if (isAligned) {
+                    BanglaHeading(text = "আপনি সঠিক দিকে আছেন! 🕋", color = GreenLight, fontSize = 18.sp)
+                } else {
+                    val angleToTurn = if (diff <= 180) diff else 360 - diff
+                    val turnDirection = if (diff <= 180) "ডানে" else "বামে"
+                    BanglaHeading(
+                        text = "আরেকটু $turnDirection ${toBengaliNumber(angleToTurn.toString())}° ঘুরুন",
+                        color = GoldLight,
+                        fontSize = 16.sp
+                    )
                 }
             }
         }
+
+        // Expandable figure-8 calibration guide box
+        Surface(
+            color = Color.White.copy(alpha = 0.05f),
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { showCalibrationGuide = !showCalibrationGuide }
+                .padding(vertical = 8.dp)
+        ) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Filled.ScreenRotation, contentDescription = null, tint = GoldLight, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    BanglaText(text = "কম্পাস কাজ না করলে করণীয়...", color = Color.White, fontSize = 13.sp)
+                }
+                
+                AnimatedVisibility(visible = showCalibrationGuide) {
+                    Column(modifier = Modifier.padding(top = 8.dp)) {
+                        HorizontalDivider(color = Color.White.copy(alpha = 0.1f), modifier = Modifier.padding(bottom = 8.dp))
+                        BanglaText(
+                            text = "১. ফোনটি ফ্ল্যাট বা সোজা সমতলে রাখুন।\n২. ফোনটিকে বাতাসে ইংরেজি '৮' (8) অক্ষরের মতো করে ৩-৪ বার ঘুরিয়ে ক্যালিব্রেট করুন।\n৩. আপনার আশেপাশের লোহা বা ইলেকট্রনিক্স ডিভাইস থেকে দূরে থাকুন।",
+                            fontSize = 12.sp,
+                            color = Color.LightGray,
+                            lineHeight = 18.sp
+                        )
+                    }
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
 fun toBengaliNumber(number: String): String {
     val bengaliDigits = arrayOf('০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯')
-    val builder = StringBuilder()
+    val builder = java.lang.StringBuilder()
     for (char in number) {
         if (char in '0'..'9') {
             builder.append(bengaliDigits[char - '0'])

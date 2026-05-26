@@ -50,7 +50,7 @@ fun MedicineScreen(viewModel: MedicineViewModel = viewModel()) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFFCF9F2)) // Warm background
+                .background(MaterialTheme.colorScheme.background) // Warm theme background
                 .padding(padding)
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -75,7 +75,7 @@ fun MedicineScreen(viewModel: MedicineViewModel = viewModel()) {
                 item {
                     Surface(
                         shape = RoundedCornerShape(16.dp),
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.surfaceVariant,
                         modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp)
                     ) {
                         Column(
@@ -173,7 +173,7 @@ fun MedicineScreen(viewModel: MedicineViewModel = viewModel()) {
 fun MedicineCard(medicine: Medicine, upcomingLog: MedicineLog?, onTakeMedicine: (MedicineLog?) -> Unit) {
     Surface(
         shape = RoundedCornerShape(16.dp),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surfaceVariant,
         shadowElevation = 2.dp,
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -243,7 +243,7 @@ fun ScheduleItem(log: MedicineLog, medicine: Medicine, onTake: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(60.dp)) {
-            BanglaText(text = sdf.format(Date(log.scheduledAt)), fontSize = 12.sp, color = if(isTaken) Color.Gray else Color.Black)
+            BanglaText(text = sdf.format(Date(log.scheduledAt)), fontSize = 12.sp, color = if(isTaken) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurface)
             Box(
                 modifier = Modifier
                     .size(12.dp)
@@ -255,7 +255,7 @@ fun ScheduleItem(log: MedicineLog, medicine: Medicine, onTake: () -> Unit) {
         
         Surface(
             shape = RoundedCornerShape(12.dp),
-            color = if (isTaken) Color(0xFFF1F8E9) else Color.White,
+            color = if (isTaken) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f) else MaterialTheme.colorScheme.surfaceVariant,
             shadowElevation = if (isTaken) 0.dp else 1.dp,
             modifier = Modifier.weight(1f).let { 
                 if (!isTaken) it.clickable(onClick = onTake) else it 
@@ -270,18 +270,18 @@ fun ScheduleItem(log: MedicineLog, medicine: Medicine, onTake: () -> Unit) {
                     BanglaText(
                         text = medicine.medicineName, 
                         fontWeight = FontWeight.Bold, 
-                        color = if (isTaken) Color.Gray else Color.Black 
+                        color = if (isTaken) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurface 
                     )
                     BanglaText(
                         text = medicine.dosage, 
                         fontSize = 12.sp, 
-                        color = Color.Gray 
+                        color = MaterialTheme.colorScheme.onSurfaceVariant 
                     )
                 }
                 if (isTaken) {
                     Icon(Icons.Filled.CheckCircle, contentDescription = "Taken", tint = GreenPrimary)
                 } else {
-                    Icon(Icons.Filled.RadioButtonUnchecked, contentDescription = "Upcoming", tint = Color.Gray)
+                    Icon(Icons.Filled.RadioButtonUnchecked, contentDescription = "Upcoming", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }

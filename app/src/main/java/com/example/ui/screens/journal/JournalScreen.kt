@@ -47,7 +47,7 @@ fun JournalScreen(viewModel: JournalViewModel = viewModel()) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF9FAFB))
+                .background(MaterialTheme.colorScheme.background)
                 .padding(padding)
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -128,12 +128,12 @@ fun MoodSelectorRow(selectedMood: String, onMoodSelected: (String) -> Unit) {
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
                     .clickable { onMoodSelected(emoji) }
-                    .background(if (selectedMood == emoji) Color(0xFFE8F5E9) else Color.Transparent)
+                    .background(if (selectedMood == emoji) MaterialTheme.colorScheme.primaryContainer else Color.Transparent)
                     .padding(8.dp)
             ) {
                 Text(emoji, fontSize = 32.sp)
                 Spacer(modifier = Modifier.height(4.dp))
-                BanglaText(label, fontSize = 12.sp, color = Color.DarkGray)
+                BanglaText(label, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -145,7 +145,7 @@ fun JournalEntryCard(entry: JournalEntry, onDelete: () -> Unit) {
     val dateString = dateFormat.format(Date(entry.createdAt))
 
     Surface(
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surfaceVariant,
         shape = RoundedCornerShape(16.dp),
         shadowElevation = 1.dp,
         modifier = Modifier.fillMaxWidth()
@@ -176,7 +176,7 @@ fun JournalEntryCard(entry: JournalEntry, onDelete: () -> Unit) {
             BanglaText(
                 text = entry.content,
                 fontSize = 15.sp,
-                color = Color.DarkGray
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }
@@ -241,7 +241,7 @@ fun WriteEntryDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(8.dp))
-                        .background(Color(0xFFE8F5E9))
+                        .background(MaterialTheme.colorScheme.primaryContainer)
                         .clickable { showAiHints = !showAiHints }
                         .padding(12.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -259,7 +259,7 @@ fun WriteEntryDialog(
                     val hints = listOf("আজকের একটি ভালো মুহূর্ত কী ছিল?", "কী আপনাকে সবচেয়ে বেশি খুশি করেছে আজ?", "আজকের একটি কৃতজ্ঞতা (আলহামদুলিল্লাহ)")
                     hints.forEach { hint ->
                         Surface(
-                            color = Color(0xFFF9FAFB),
+                            color = MaterialTheme.colorScheme.surface,
                             shape = RoundedCornerShape(8.dp),
                             modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).clickable { content = "$content\n$hint\n- " }
                         ) {

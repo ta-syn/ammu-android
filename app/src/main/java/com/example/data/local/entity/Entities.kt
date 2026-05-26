@@ -10,9 +10,9 @@ data class Profile(
     val phone: String?, // unique
     val dateOfBirth: String?, // date string
     val locationCity: String = "Dhaka",
-    val locationLat: Double?,
-    val locationLng: Double?,
-    val avatarUrl: String?,
+    val locationLat: Double? = null,
+    val locationLng: Double? = null,
+    val avatarUrl: String? = null,
     val preferredFontSize: String = "large",
     val subscriptionTier: String = "free",
     val notificationEnabled: Boolean = true,

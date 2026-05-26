@@ -15,8 +15,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import org.xmlpullparser.v1.XmlPullParser
-import org.xmlpullparser.v1.XmlPullParserFactory
+import org.xmlpull.v1.XmlPullParser
+import org.xmlpull.v1.XmlPullParserFactory
 import java.io.StringReader
 import java.text.SimpleDateFormat
 import java.util.Locale

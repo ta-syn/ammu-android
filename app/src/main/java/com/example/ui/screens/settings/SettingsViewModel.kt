@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.auth.auth
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import com.example.network.supabaseClient

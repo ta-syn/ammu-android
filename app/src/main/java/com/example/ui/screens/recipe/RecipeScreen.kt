@@ -30,6 +30,7 @@ import com.example.ui.theme.GreenPrimary
 @Composable
 fun RecipeScreen(viewModel: RecipeViewModel = viewModel()) {
     val favoriteRecipes by viewModel.favoriteRecipes.collectAsState()
+    val allRecipes by viewModel.allRecipes.collectAsState()
     
     var showAiRecipeSheet by remember { mutableStateOf(false) }
     var ingredientQuery by remember { mutableStateOf("") }
@@ -143,8 +144,6 @@ fun RecipeScreen(viewModel: RecipeViewModel = viewModel()) {
                 BanglaHeading(text = "জনপ্রিয় বাংলা রেসিপি", fontSize = 18.sp)
                 Spacer(modifier = Modifier.height(12.dp))
             }
-            
-            val allRecipes by viewModel.allRecipes.collectAsState()
             
             items(allRecipes) { recipe ->
                 RecipeCard(recipe) {

@@ -9,6 +9,7 @@ import com.example.data.local.DatabaseProvider
 import com.example.data.local.entity.PrayerLog
 import com.google.android.gms.location.LocationServices
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.auth.auth
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import com.example.network.supabaseClient

@@ -7,6 +7,7 @@ import com.example.data.local.DatabaseProvider
 import com.example.data.local.entity.Medicine
 import com.example.data.local.entity.MedicineLog
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.auth.auth
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import com.example.network.supabaseClient

@@ -544,9 +544,9 @@ fun EditProfileDialog(
         confirmButton = {
             Button(
                 onClick = { onSave(fullName, phone, dobState, locationCity, avatarUrl) },
-                colors = ButtonDefaults.buttonColors(containerColor = GreenPrimary)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
-                BanglaText("সংরক্ষণ করুন", color = Color.White)
+                BanglaText("সংরক্ষণ করুন", color = MaterialTheme.colorScheme.onPrimary)
             }
         },
         dismissButton = {

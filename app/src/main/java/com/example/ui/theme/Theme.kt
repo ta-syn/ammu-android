@@ -19,35 +19,35 @@ import androidx.core.view.WindowCompat
 
 private val DarkColorScheme =
   darkColorScheme(
-    primary = GreenLight,
-    onPrimary = Color(0xFF0A1F1C),
-    primaryContainer = GreenDark,
+    primary = GoldAccent,
+    onPrimary = GreenPrimary,
+    primaryContainer = GreenPrimary,
     onPrimaryContainer = GoldAccent,
-    secondary = GreenLight,
+    secondary = GoldAccent,
     tertiary = GoldAccent,
     background = SurfaceDark,
     surface = SurfaceDark,
-    onSecondary = Color(0xFF0A1F1C),
-    onTertiary = TextLight,
-    onBackground = TextDark,
-    onSurface = TextDark,
+    onSecondary = GreenPrimary,
+    onTertiary = GreenPrimary,
+    onBackground = GoldAccent,
+    onSurface = GoldAccent,
     error = DangerSoft
   )
 
 private val LightColorScheme =
   lightColorScheme(
     primary = GreenPrimary,
-    onPrimary = TextOnPrimary,
-    primaryContainer = Color(0xFFE8F5F3),
-    onPrimaryContainer = Color(0xFF012420),
+    onPrimary = GoldAccent,
+    primaryContainer = GoldAccent,
+    onPrimaryContainer = GreenPrimary,
     secondary = GreenPrimary,
     tertiary = GoldAccent,
     background = SurfaceLight,
     surface = SurfaceLight,
-    onSecondary = TextOnPrimary,
-    onTertiary = TextLight,
-    onBackground = TextLight,
-    onSurface = TextLight,
+    onSecondary = GoldAccent,
+    onTertiary = GreenPrimary,
+    onBackground = GreenPrimary,
+    onSurface = GreenPrimary,
     error = DangerSoft
   )
 
@@ -75,27 +75,67 @@ fun MyApplicationTheme(
       primary = when (colorTheme) {
         1 -> Color(0xFF90CAF9)
         2 -> Color(0xFFE1BEE7)
-        else -> GreenLight
+        else -> GoldAccent
       },
-      onPrimary = Color(0xFF0A1F1C),
+      onPrimary = when (colorTheme) {
+        1 -> Color.Black
+        2 -> Color.Black
+        else -> GreenPrimary
+      },
       primaryContainer = when (colorTheme) {
         1 -> Color(0xFF1565C0)
         2 -> Color(0xFF6A1B9A)
-        else -> GreenDark
+        else -> GreenPrimary
       },
-      onPrimaryContainer = GoldAccent,
+      onPrimaryContainer = when (colorTheme) {
+        1 -> Color.White
+        2 -> Color.White
+        else -> GoldAccent
+      },
       secondary = when (colorTheme) {
         1 -> Color(0xFF90CAF9)
         2 -> Color(0xFFE1BEE7)
-        else -> GreenLight
+        else -> GoldAccent
+      },
+      onSecondary = when (colorTheme) {
+        1 -> Color.Black
+        2 -> Color.Black
+        else -> GreenPrimary
+      },
+      secondaryContainer = when (colorTheme) {
+        1 -> Color(0xFF1565C0)
+        2 -> Color(0xFF6A1B9A)
+        else -> GreenPrimary
+      },
+      onSecondaryContainer = when (colorTheme) {
+        1 -> Color.White
+        2 -> Color.White
+        else -> GoldAccent
       },
       tertiary = GoldAccent,
+      onTertiary = GreenPrimary,
+      surfaceVariant = when (colorTheme) {
+        1 -> Color(0xFF1565C0)
+        2 -> Color(0xFF6A1B9A)
+        else -> GreenPrimary
+      },
+      onSurfaceVariant = when (colorTheme) {
+        1 -> Color.White
+        2 -> Color.White
+        else -> GoldAccent
+      },
       background = if (highContrast) Color.Black else SurfaceDark,
       surface = if (highContrast) Color.Black else SurfaceDark,
-      onSecondary = Color(0xFF0A1F1C),
-      onTertiary = TextLight,
-      onBackground = TextDark,
-      onSurface = TextDark,
+      onBackground = when (colorTheme) {
+        1 -> TextDark
+        2 -> TextDark
+        else -> GoldAccent
+      },
+      onSurface = when (colorTheme) {
+        1 -> TextDark
+        2 -> TextDark
+        else -> GoldAccent
+      },
       error = DangerSoft
     )
   } else {
@@ -105,29 +145,65 @@ fun MyApplicationTheme(
         2 -> Color(0xFF9C27B0)
         else -> GreenPrimary
       },
-      onPrimary = TextOnPrimary,
+      onPrimary = when (colorTheme) {
+        1 -> Color.White
+        2 -> Color.White
+        else -> GoldAccent
+      },
       primaryContainer = when (colorTheme) {
         1 -> Color(0xFFE3F2FD)
         2 -> Color(0xFFF3E5F5)
-        else -> Color(0xFFE8F5F3)
+        else -> GoldAccent
       },
       onPrimaryContainer = when (colorTheme) {
         1 -> Color(0xFF0D47A1)
         2 -> Color(0xFF4A148C)
-        else -> Color(0xFF012420)
+        else -> GreenPrimary
       },
       secondary = when (colorTheme) {
         1 -> Color(0xFF1976D2)
         2 -> Color(0xFF9C27B0)
         else -> GreenPrimary
       },
+      onSecondary = when (colorTheme) {
+        1 -> Color.White
+        2 -> Color.White
+        else -> GoldAccent
+      },
+      secondaryContainer = when (colorTheme) {
+        1 -> Color(0xFFE3F2FD)
+        2 -> Color(0xFFF3E5F5)
+        else -> GoldAccent
+      },
+      onSecondaryContainer = when (colorTheme) {
+        1 -> Color(0xFF0D47A1)
+        2 -> Color(0xFF4A148C)
+        else -> GreenPrimary
+      },
       tertiary = GoldAccent,
+      onTertiary = GreenPrimary,
+      surfaceVariant = when (colorTheme) {
+        1 -> Color(0xFFE3F2FD)
+        2 -> Color(0xFFF3E5F5)
+        else -> GoldAccent
+      },
+      onSurfaceVariant = when (colorTheme) {
+        1 -> Color(0xFF0D47A1)
+        2 -> Color(0xFF4A148C)
+        else -> GreenPrimary
+      },
       background = if (highContrast) Color.White else SurfaceLight,
       surface = if (highContrast) Color.White else SurfaceLight,
-      onSecondary = TextOnPrimary,
-      onTertiary = TextLight,
-      onBackground = TextLight,
-      onSurface = TextLight,
+      onBackground = when (colorTheme) {
+        1 -> TextLight
+        2 -> TextLight
+        else -> GreenPrimary
+      },
+      onSurface = when (colorTheme) {
+        1 -> TextLight
+        2 -> TextLight
+        else -> GreenPrimary
+      },
       error = DangerSoft
     )
   }

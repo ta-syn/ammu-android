@@ -194,7 +194,7 @@ class ShoppingViewModel(application: Application) : AndroidViewModel(application
 
             var attemptSuccess = false
             val models = listOf(
-                "openrouter/free",
+                "google/gemma-3-27b-it:free",
                 "google/gemma-2-9b-it:free",
                 "qwen/qwen-2.5-72b-instruct:free",
                 "meta-llama/llama-3-8b-instruct:free"

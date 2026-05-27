@@ -16,35 +16,6 @@ class JournalViewModel(application: Application) : AndroidViewModel(application)
     val entries: StateFlow<List<JournalEntry>> = dao.getAllJournalEntries()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    init {
-        // Pre-populate with some sample mock data if empty
-        viewModelScope.launch {
-            dao.getAllJournalEntries().collect { currentEntries ->
-                if (currentEntries.isEmpty()) {
-                    dao.insertJournalEntry(
-                        JournalEntry(
-                            userId = "default_user",
-                            title = "খুব ভালো দিন",
-                            content = "আজকে নাতনিদের সাথে ভিডিও কলে কথা বললাম। ওরা অনেক বড় হয়ে গেছে। খুব ভালো লেগেছে তাদের সাথে কথা বলে। আলহামদুলিল্লাহ।",
-                            mood = "😊",
-                            createdAt = System.currentTimeMillis() - 86400000 * 2 // 2 days ago
-                        )
-                    )
-                    dao.insertJournalEntry(
-                        JournalEntry(
-                            userId = "default_user",
-                            title = "ডাক্তারের কাছে যাওয়া",
-                            content = "আজ সকালে চেকআপের জন্য গিয়েছিলাম। ডাক্তার বলল প্রেসার এখন নরমাল আছে। ওষুধ নিয়মিত খেতে বলেছে।",
-                            mood = "😐",
-                            createdAt = System.currentTimeMillis() - 86400000 * 5 // 5 days ago
-                        )
-                    )
-                }
-                throw kotlinx.coroutines.CancellationException()
-            }
-        }
-    }
-
     fun addEntry(title: String, content: String, mood: String) {
         viewModelScope.launch {
             dao.insertJournalEntry(

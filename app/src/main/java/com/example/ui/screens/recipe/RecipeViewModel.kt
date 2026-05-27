@@ -19,6 +19,42 @@ class RecipeViewModel(application: Application) : AndroidViewModel(application) 
     val favoriteRecipes: StateFlow<List<Recipe>> = dao.getFavoriteRecipes()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
+    val allRecipes: StateFlow<List<Recipe>> = dao.getAllRecipes()
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    init {
+        // Prepopulate with default popular Bangladeshi recipes if database is empty
+        viewModelScope.launch {
+            dao.getAllRecipes().collect { currentRecipes ->
+                if (currentRecipes.isEmpty()) {
+                    dao.insertRecipe(
+                        Recipe(
+                            title = "মুরগির রোস্ট",
+                            ingredientsList = "মুরগি, দই, পেঁয়াজ, এলাচ, ঘি, গরম মসলা",
+                            steps = "১. প্রথমে মুরগি ধুয়ে দই ও মসলা দিয়ে মেরিনেট করে রাখুন ৩০ মিনিট।\n২. কড়াইতে ঘি গরম করে পেঁয়াজ কুচি ভেজে বেরেস্তা করে তুলে রাখুন।\n৩. ওই ঘিয়েই মেরিনেট করা মুরগি দিয়ে ভালো করে কষিয়ে রান্না করুন।\n৪. সেদ্ধ হয়ে গ্রেভি ঘন হয়ে এলে বেরেস্তা ছড়িয়ে নামিয়ে নিন।",
+                            prepTime = "৪৫ মিনিট",
+                            isFavorite = false,
+                            isDiabetesFriendly = false,
+                            category = "meat"
+                        )
+                    )
+                    dao.insertRecipe(
+                        Recipe(
+                            title = "মিক্সড ভেজিটেবল",
+                            ingredientsList = "গাজর, পেঁপে, মটরশুঁটি, পটল, কাঁচামরিচ, তেল, ফোড়ন",
+                            steps = "১. সবজিগুলো সমান সাইজে কেটে ধুয়ে পরিষ্কার করে নিন।\n২. কড়াইতে সামান্য তেল দিয়ে সবজিগুলো সামান্য লবন দিয়ে সেদ্ধ করতে দিন।\n৩. সেদ্ধ হয়ে এলে কড়াইতে তেল ও ফোড়ন দিয়ে সবজিগুলো হালকা ভেজে নামিয়ে নিন।",
+                            prepTime = "২৫ মিনিট",
+                            isFavorite = false,
+                            isDiabetesFriendly = true,
+                            category = "veg"
+                        )
+                    )
+                }
+                throw kotlinx.coroutines.CancellationException()
+            }
+        }
+    }
+
     private val _isGenerating = MutableStateFlow(false)
     val isGenerating: StateFlow<Boolean> = _isGenerating.asStateFlow()
 
@@ -82,10 +118,11 @@ class RecipeViewModel(application: Application) : AndroidViewModel(application) 
 
             var attemptSuccess = false
             val models = listOf(
-                "openrouter/free",
+                "google/gemma-3-27b-it:free",
                 "google/gemma-2-9b-it:free",
                 "qwen/qwen-2.5-72b-instruct:free",
-                "meta-llama/llama-3-8b-instruct:free"
+                "meta-llama/llama-3.1-8b-instruct:free",
+                "microsoft/phi-3-mini-128k-instruct:free"
             )
             
             for (model in models) {
@@ -95,7 +132,7 @@ class RecipeViewModel(application: Application) : AndroidViewModel(application) 
                         model = model,
                         messages = requestMessages,
                         stream = false,
-                        response_format = mapOf("type" to "json_object")
+                        response_format = null
                     )
 
                     val response = com.example.ui.screens.chat.OpenRouterClient.service.getChatCompletions(

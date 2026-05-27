@@ -122,7 +122,7 @@ fun NotificationItem(notification: AppNotification, onClick: () -> Unit) {
     val timeStr = dateFormat.format(Date(notification.createdAt))
 
     Surface(
-        color = if (notification.isRead) Color(0xFFF9FAFB) else Color(0xFFE8F5E9),
+        color = if (notification.isRead) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.primaryContainer,
         shape = RoundedCornerShape(12.dp),
         shadowElevation = if (notification.isRead) 0.dp else 2.dp,
         modifier = Modifier
@@ -135,15 +135,15 @@ fun NotificationItem(notification: AppNotification, onClick: () -> Unit) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Top
             ) {
-                BanglaHeading(notification.title, fontSize = 16.sp, color = if (notification.isRead) Color.DarkGray else Color.Black)
+                BanglaHeading(notification.title, fontSize = 16.sp, color = if (notification.isRead) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onPrimaryContainer)
                 if (!notification.isRead) {
-                    Box(modifier = Modifier.size(8.dp).background(GreenPrimary, CircleShape))
+                    Box(modifier = Modifier.size(8.dp).background(MaterialTheme.colorScheme.primary, CircleShape))
                 }
             }
             Spacer(modifier = Modifier.height(4.dp))
-            BanglaText(notification.message, fontSize = 14.sp, color = Color.DarkGray)
+            BanglaText(notification.message, fontSize = 14.sp, color = if (notification.isRead) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onPrimaryContainer)
             Spacer(modifier = Modifier.height(8.dp))
-            BanglaText(timeStr, fontSize = 12.sp, color = Color.Gray)
+            BanglaText(timeStr, fontSize = 12.sp, color = if (notification.isRead) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f))
         }
     }
 }
@@ -170,17 +170,17 @@ fun InAppNotificationBanner(
                     },
                 shape = RoundedCornerShape(16.dp),
                 shadowElevation = 8.dp,
-                color = Color.White
+                color = MaterialTheme.colorScheme.surfaceVariant
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
-                        modifier = Modifier.size(40.dp).background(GreenPrimary.copy(alpha = 0.1f), CircleShape),
+                        modifier = Modifier.size(40.dp).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Filled.Notifications, contentDescription = null, tint = GreenPrimary)
+                        Icon(Icons.Filled.Notifications, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     Column(modifier = Modifier.weight(1f)) {

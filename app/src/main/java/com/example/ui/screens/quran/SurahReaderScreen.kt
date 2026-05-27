@@ -30,33 +30,50 @@ fun SurahReaderScreen(surahId: Int, onBack: () -> Unit, viewModel: SurahReaderVi
     LaunchedEffect(surahId) {
         viewModel.fetchSurah(surahId)
     }
-    
+
+    // Stop audio when leaving screen
+    DisposableEffect(Unit) {
+        onDispose { viewModel.stopAudio() }
+    }
+
     val uiState by viewModel.uiState.collectAsState()
-    
-    var playingAyahIndex by remember { mutableStateOf<Int?>(null) }
+    val audioState by viewModel.audioState.collectAsState()
+
     var showTranslation by remember { mutableStateOf(true) }
-    
     val listState = rememberLazyListState()
+
+    val currentPlayingIndex = when (val s = audioState) {
+        is AudioState.Playing -> s.ayahIndex
+        is AudioState.Paused  -> s.ayahIndex
+        else -> null
+    }
+    val isAudioLoading = audioState is AudioState.Loading
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { 
+                title = {
                     if (uiState is SurahReaderUiState.Success) {
-                        BanglaHeading(text = (uiState as SurahReaderUiState.Success).surah.englishName, fontSize = 20.sp)
+                        BanglaHeading(
+                            text = (uiState as SurahReaderUiState.Success).surah.englishName,
+                            fontSize = 20.sp
+                        )
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = {
+                        viewModel.stopAudio()
+                        onBack()
+                    }) {
                         Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
                     IconButton(onClick = { showTranslation = !showTranslation }) {
-                        Icon(if (showTranslation) Icons.Filled.Translate else Icons.Filled.VisibilityOff, contentDescription = "Toggle Translation")
-                    }
-                    IconButton(onClick = { /* TODO Font Size */ }) {
-                        Icon(Icons.Filled.FormatSize, contentDescription = "Font Size")
+                        Icon(
+                            if (showTranslation) Icons.Filled.Translate else Icons.Filled.VisibilityOff,
+                            contentDescription = "Toggle Translation"
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -66,19 +83,35 @@ fun SurahReaderScreen(surahId: Int, onBack: () -> Unit, viewModel: SurahReaderVi
             )
         },
         bottomBar = {
-            if (uiState is SurahReaderUiState.Success) {
+            if (uiState is SurahReaderUiState.Success && currentPlayingIndex != null) {
                 val surah = (uiState as SurahReaderUiState.Success).surah
+                val ayahs = (uiState as SurahReaderUiState.Success).ayahs
                 AnimatedVisibility(
-                    visible = playingAyahIndex != null,
+                    visible = true,
                     enter = slideInVertically(initialOffsetY = { it }),
                     exit = slideOutVertically(targetOffsetY = { it })
                 ) {
                     AudioPlayerBar(
                         surahName = surah.name,
-                        currentAyah = (playingAyahIndex ?: 0) + 1,
+                        currentAyah = currentPlayingIndex + 1,
                         totalAyahs = surah.numberOfAyahs,
-                        onPlayPause = { /* TODO */ },
-                        onClose = { playingAyahIndex = null }
+                        isPlaying = audioState is AudioState.Playing,
+                        isLoading = isAudioLoading,
+                        onPlayPause = {
+                            val ayah = ayahs.getOrNull(currentPlayingIndex) ?: return@AudioPlayerBar
+                            viewModel.toggleAyahAudio(currentPlayingIndex, ayah.audioUrl)
+                        },
+                        onPrev = {
+                            val prevIndex = (currentPlayingIndex - 1).coerceAtLeast(0)
+                            val ayah = ayahs.getOrNull(prevIndex) ?: return@AudioPlayerBar
+                            viewModel.toggleAyahAudio(prevIndex, ayah.audioUrl)
+                        },
+                        onNext = {
+                            val nextIndex = (currentPlayingIndex + 1).coerceAtMost(ayahs.size - 1)
+                            val ayah = ayahs.getOrNull(nextIndex) ?: return@AudioPlayerBar
+                            viewModel.toggleAyahAudio(nextIndex, ayah.audioUrl)
+                        },
+                        onClose = { viewModel.stopAudio() }
                     )
                 }
             }
@@ -101,7 +134,7 @@ fun SurahReaderScreen(surahId: Int, onBack: () -> Unit, viewModel: SurahReaderVi
                 is SurahReaderUiState.Success -> {
                     val surah = (uiState as SurahReaderUiState.Success).surah
                     val ayahs = (uiState as SurahReaderUiState.Success).ayahs
-                    
+
                     LazyColumn(
                         state = listState,
                         modifier = Modifier
@@ -114,16 +147,20 @@ fun SurahReaderScreen(surahId: Int, onBack: () -> Unit, viewModel: SurahReaderVi
                                 modifier = Modifier.fillMaxWidth().padding(16.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                BanglaHeading(text = surah.englishNameTranslation, fontSize = 28.sp, color = MaterialTheme.colorScheme.primary)
+                                BanglaHeading(
+                                    text = surah.englishNameTranslation,
+                                    fontSize = 28.sp,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 BanglaText(
-                                    text = "${if(surah.revelationType == "Meccan") "মাক্কী" else "মাদানী"} • ${surah.numberOfAyahs} আয়াত",
+                                    text = "${if (surah.revelationType == "Meccan") "মাক্কী" else "মাদানী"} • ${surah.numberOfAyahs} আয়াত",
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 Spacer(modifier = Modifier.height(24.dp))
                                 if (surah.number != 1 && surah.number != 9) {
                                     Text(
-                                        text = "بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ",
+                                        text = "بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ",
                                         fontSize = 32.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.onSurface,
@@ -135,18 +172,22 @@ fun SurahReaderScreen(surahId: Int, onBack: () -> Unit, viewModel: SurahReaderVi
                         }
 
                         itemsIndexed(ayahs) { index, ayah ->
+                            val isPlaying = audioState is AudioState.Playing && (audioState as AudioState.Playing).ayahIndex == index
+                            val isPaused = audioState is AudioState.Paused && (audioState as AudioState.Paused).ayahIndex == index
+                            val isThisLoading = isAudioLoading && currentPlayingIndex == index
+
                             AyahItem(
                                 ayah = ayah,
-                                isPlaying = playingAyahIndex == index,
+                                isPlaying = isPlaying,
+                                isPaused = isPaused,
+                                isLoading = isThisLoading,
                                 showTranslation = showTranslation,
-                                onPlay = { playingAyahIndex = if (playingAyahIndex == index) null else index }
+                                onPlay = { viewModel.toggleAyahAudio(index, ayah.audioUrl) }
                             )
                             HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
                         }
-                        
-                        item {
-                            Spacer(modifier = Modifier.height(80.dp)) // padding for audio bar
-                        }
+
+                        item { Spacer(modifier = Modifier.height(80.dp)) }
                     }
                 }
             }
@@ -158,11 +199,14 @@ fun SurahReaderScreen(surahId: Int, onBack: () -> Unit, viewModel: SurahReaderVi
 fun AyahItem(
     ayah: AyahUi,
     isPlaying: Boolean,
+    isPaused: Boolean,
+    isLoading: Boolean,
     showTranslation: Boolean,
     onPlay: () -> Unit
 ) {
-    val bgColor = if (isPlaying) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f) 
-                  else MaterialTheme.colorScheme.background
+    val bgColor = if (isPlaying || isPaused)
+        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+    else MaterialTheme.colorScheme.background
 
     Column(
         modifier = Modifier
@@ -188,23 +232,45 @@ fun AyahItem(
                     )
                 }
             }
-            
-            Row {
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                // Play/Pause toggle button
                 IconButton(onClick = onPlay) {
-                    Icon(
-                        imageVector = if (isPlaying) Icons.Filled.PauseCircle else Icons.Filled.PlayCircle,
-                        contentDescription = "Play",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    } else {
+                        Icon(
+                            imageVector = when {
+                                isPlaying -> Icons.Filled.PauseCircle
+                                isPaused  -> Icons.Filled.PlayCircle
+                                else      -> Icons.Filled.PlayCircleFilled
+                            },
+                            contentDescription = if (isPlaying) "Pause" else "Play",
+                            tint = if (isPlaying || isPaused)
+                                MaterialTheme.colorScheme.primary
+                            else
+                                MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
                 }
-                IconButton(onClick = { /* TODO */ }) {
-                    Icon(Icons.Filled.BookmarkBorder, contentDescription = "Bookmark", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                IconButton(onClick = { /* Bookmark TODO */ }) {
+                    Icon(
+                        Icons.Filled.BookmarkBorder,
+                        contentDescription = "Bookmark",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         }
-        
+
         Spacer(modifier = Modifier.height(16.dp))
-        
+
+        // Arabic text
         Text(
             text = ayah.arabic,
             style = LocalTextStyle.current.copy(
@@ -216,8 +282,8 @@ fun AyahItem(
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.fillMaxWidth()
         )
-        
-        if (showTranslation) {
+
+        if (showTranslation && ayah.translationBn.isNotEmpty()) {
             Spacer(modifier = Modifier.height(16.dp))
             BanglaText(
                 text = ayah.translationBn,
@@ -234,7 +300,11 @@ fun AudioPlayerBar(
     surahName: String,
     currentAyah: Int,
     totalAyahs: Int,
+    isPlaying: Boolean,
+    isLoading: Boolean,
     onPlayPause: () -> Unit,
+    onPrev: () -> Unit,
+    onNext: () -> Unit,
     onClose: () -> Unit
 ) {
     Surface(
@@ -249,7 +319,7 @@ fun AudioPlayerBar(
                 color = MaterialTheme.colorScheme.primary,
                 trackColor = MaterialTheme.colorScheme.primaryContainer
             )
-            
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -271,9 +341,9 @@ fun AudioPlayerBar(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                
+
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { /* TODO Prev */ }) {
+                    IconButton(onClick = onPrev) {
                         Icon(Icons.Filled.SkipPrevious, contentDescription = "Previous")
                     }
                     IconButton(onClick = onPlayPause) {
@@ -283,11 +353,23 @@ fun AudioPlayerBar(
                             modifier = Modifier.size(48.dp)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
-                                Icon(Icons.Filled.Pause, contentDescription = "Pause", tint = MaterialTheme.colorScheme.onPrimary)
+                                if (isLoading) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(24.dp),
+                                        strokeWidth = 2.dp,
+                                        color = MaterialTheme.colorScheme.onPrimary
+                                    )
+                                } else {
+                                    Icon(
+                                        if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                                        contentDescription = if (isPlaying) "Pause" else "Play",
+                                        tint = MaterialTheme.colorScheme.onPrimary
+                                    )
+                                }
                             }
                         }
                     }
-                    IconButton(onClick = { /* TODO Next */ }) {
+                    IconButton(onClick = onNext) {
                         Icon(Icons.Filled.SkipNext, contentDescription = "Next")
                     }
                     IconButton(onClick = onClose) {

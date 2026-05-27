@@ -8,6 +8,10 @@ import androidx.lifecycle.viewModelScope
 import com.example.data.local.DatabaseProvider
 import com.example.data.local.entity.PrayerLog
 import com.google.android.gms.location.LocationServices
+import io.github.jan.supabase.postgrest.postgrest
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import com.example.network.supabaseClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -127,10 +131,15 @@ class PrayerViewModel(application: Application) : AndroidViewModel(application) 
             val endOfDay = cal.timeInMillis
 
             val existing = dao.getPrayerLogForNameAndDate(prayerName, startOfDay, endOfDay)
+            val finalStatus = if (existing != null) {
+                if (existing.status == "prayed") "missed" else "prayed"
+            } else {
+                "prayed"
+            }
             if (existing != null) {
                 // Delete or toggle to missed
                 val updated = existing.copy(
-                    status = if (existing.status == "prayed") "missed" else "prayed",
+                    status = finalStatus,
                     prayedAt = if (existing.status == "prayed") null else System.currentTimeMillis()
                 )
                 dao.insertPrayerLog(updated)
@@ -142,9 +151,25 @@ class PrayerViewModel(application: Application) : AndroidViewModel(application) 
                     prayerName = prayerName,
                     scheduledAt = scheduledTimestamp,
                     prayedAt = System.currentTimeMillis(),
-                    status = "prayed"
+                    status = finalStatus
                 )
                 dao.insertPrayerLog(newLog)
+            }
+
+            // Sync to Supabase
+            val currentUser = supabaseClient.auth.currentUserOrNull()
+            if (currentUser != null) {
+                try {
+                    val logJson = buildJsonObject {
+                        put("user_id", currentUser.id)
+                        put("prayer_name", prayerName)
+                        put("status", finalStatus)
+                        put("created_at", java.time.Instant.now().toString())
+                    }
+                    supabaseClient.postgrest.from("prayer_logs").insert(logJson)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
         }
     }

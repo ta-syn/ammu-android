@@ -144,12 +144,9 @@ fun RecipeScreen(viewModel: RecipeViewModel = viewModel()) {
                 Spacer(modifier = Modifier.height(12.dp))
             }
             
-            val mockRecipes = listOf(
-                Recipe(0, "মুরগির রোস্ট", "মুরগি, দই, পেঁয়াজ, এলাচ", "১. মেরিনেট করুন\n২. পেঁয়াজ ভাজুন\n৩. রান্না করুন", "৪৫ মিনিট", false, false, "meat"),
-                Recipe(0, "মিক্সড ভেজিটেবল", "গাজর, পেঁপে, মটরশুঁটি", "১. সবজি কাটুন\n২. সেদ্ধ করুন\n৩. তেলে ভাজুন", "২৫ মিনিট", false, true, "veg")
-            )
+            val allRecipes by viewModel.allRecipes.collectAsState()
             
-            items(mockRecipes) { recipe ->
+            items(allRecipes) { recipe ->
                 RecipeCard(recipe) {
                     viewRecipeDetail = recipe
                 }

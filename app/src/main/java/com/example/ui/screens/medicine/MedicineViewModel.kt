@@ -6,6 +6,10 @@ import androidx.lifecycle.viewModelScope
 import com.example.data.local.DatabaseProvider
 import com.example.data.local.entity.Medicine
 import com.example.data.local.entity.MedicineLog
+import io.github.jan.supabase.postgrest.postgrest
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import com.example.network.supabaseClient
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -44,6 +48,23 @@ class MedicineViewModel(application: Application) : AndroidViewModel(application
                 notes = notes
             )
             val insertedId = dao.insertMedicine(med).toInt()
+
+            // Sync to Supabase
+            try {
+                val currentUser = supabaseClient.auth.currentUserOrNull()
+                if (currentUser != null) {
+                    val medJson = buildJsonObject {
+                        put("id", insertedId)
+                        put("user_id", currentUser.id)
+                        put("medicine_name", name)
+                        put("times_json", timesJson)
+                        put("is_active", true)
+                    }
+                    supabaseClient.postgrest.from("medicines").upsert(medJson)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
             
             // Generate scheduled logs for the next 7 days
             val cal = Calendar.getInstance()
@@ -122,6 +143,17 @@ class MedicineViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             dao.deleteLogsForMedicine(medicine.id)
             dao.deleteMedicine(medicine)
+
+            // Sync to Supabase
+            try {
+                supabaseClient.postgrest.from("medicines").delete {
+                    filter {
+                        eq("id", medicine.id)
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 }

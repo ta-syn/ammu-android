@@ -7,6 +7,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import io.github.jan.supabase.postgrest.postgrest
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import com.example.network.supabaseClient
 
 data class SettingsState(
     val fontSize: Int = 1, // 0: Small, 1: Medium, 2: Large, 3: Extra Large
@@ -178,6 +182,21 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     )
                 }
                 dao.insertProfile(updatedProfile)
+
+                // Sync to Supabase
+                try {
+                    val currentUser = supabaseClient.auth.currentUserOrNull()
+                    if (currentUser != null) {
+                        val profileJson = buildJsonObject {
+                            put("id", currentUser.id)
+                            put("full_name", updatedProfile.fullName ?: "ব্যবহারকারী")
+                            put("notification_enabled", updatedProfile.notificationEnabled)
+                        }
+                        supabaseClient.postgrest.from("profiles").upsert(profileJson)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -227,6 +246,21 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     )
                 }
                 dao.insertProfile(updatedProfile)
+
+                // Sync to Supabase
+                try {
+                    val currentUser = supabaseClient.auth.currentUserOrNull()
+                    if (currentUser != null) {
+                        val profileJson = buildJsonObject {
+                            put("id", currentUser.id)
+                            put("full_name", fullName)
+                            put("notification_enabled", updatedProfile.notificationEnabled)
+                        }
+                        supabaseClient.postgrest.from("profiles").upsert(profileJson)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
             }

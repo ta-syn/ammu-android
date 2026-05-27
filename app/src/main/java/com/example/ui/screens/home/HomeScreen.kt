@@ -2,6 +2,7 @@ package com.example.ui.screens.home
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -16,6 +17,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,7 +35,6 @@ import com.example.ui.components.CardIslamic
 import com.example.ui.components.Radius
 import com.example.ui.components.Spacing
 import com.example.ui.theme.GoldAccent
-import com.example.ui.theme.GreenLight
 import com.example.ui.theme.InfoCalm
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -59,6 +60,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.postgrest.postgrest
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import com.example.network.supabaseClient
 import com.example.data.local.DatabaseProvider
 import com.example.data.local.entity.Profile
@@ -72,8 +76,32 @@ import com.example.ui.screens.weather.WeatherUiState
 fun HomeScreen(navController: NavController = rememberNavController()) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    var dailyReminder by remember { mutableStateOf("মায়ের পায়ের নিচে সন্তানের বেহেশত।") }
 
     LaunchedEffect(Unit) {
+        // Fetch daily content from Supabase
+        scope.launch(Dispatchers.IO) {
+            try {
+                val response = supabaseClient.postgrest.from("daily_content")
+                    .select {
+                        filter {
+                            eq("content_type", "reminder")
+                        }
+                        order(column = "created_at", order = io.github.jan.supabase.postgrest.query.Order.DESCENDING)
+                        limit(1)
+                    }
+                val jsonArray = org.json.JSONArray(response.data)
+                if (jsonArray.length() > 0) {
+                    val first = jsonArray.getJSONObject(0)
+                    val content = first.getString("content")
+                    if (content.isNotBlank()) {
+                        dailyReminder = content
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
         scope.launch(Dispatchers.IO) {
             try {
                 val currentUser = supabaseClient.auth.currentUserOrNull()
@@ -104,6 +132,18 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
                         darkModePreference = existingProfile?.darkModePreference ?: "system"
                     )
                     dao.insertProfile(updatedProfile)
+
+                    // Sync to Supabase profiles table
+                    try {
+                        val profileJson = buildJsonObject {
+                            put("id", currentUser.id)
+                            put("full_name", name)
+                            put("notification_enabled", updatedProfile.notificationEnabled)
+                        }
+                        supabaseClient.postgrest.from("profiles").upsert(profileJson)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -131,7 +171,7 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Next Prayer Card
+            // Next Prayer Card (Dynamic)
             NextPrayerCard()
 
             val chatNav = { navController.navigate("chat") }
@@ -148,6 +188,7 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
             val newsNav = { navController.navigate("news") }
             val journalNav = { navController.navigate("journal") }
             val familyNav = { navController.navigate("family") }
+            val healthNav = { navController.navigate("health") }
 
             // Quick Actions Grid
             QuickActionsGrid(
@@ -168,7 +209,7 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
                 onNavigateToSettings = settingsNav
             )
 
-            // Today's Medicine Card
+            // Today's Medicine Card (Dynamic)
             MedicineCard(onClick = medicineNav)
 
             // Daily Dua Widget
@@ -177,14 +218,14 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
             // Daily Quran Widget
             QuranWidget()
 
-            // Health Summary Card
-            HealthSummaryCard()
+            // Health Summary Card (Dynamic)
+            HealthSummaryCard(onClick = healthNav)
 
             // Today's Hadith Preview
-            HadithPreview(onClick = { navController.navigate("hadith") })
+            HadithPreview(text = dailyReminder, onClick = hadithNav)
             
-            // Family Activity Card
-            FamilyActivityCard()
+            // Family Activity Card (Dynamic)
+            FamilyActivityCard(onClick = familyNav)
             
             Spacer(modifier = Modifier.height(80.dp))
         }
@@ -245,11 +286,13 @@ fun HeroSection(
                         enter = androidx.compose.animation.fadeIn(animationSpec = androidx.compose.animation.core.tween(1500)) +
                                 androidx.compose.animation.slideInVertically(initialOffsetY = { 20 })
                     ) {
-                        BanglaHeading(
-                            text = "$greeting, $userName $emoji",
-                            color = MaterialTheme.colorScheme.primary,
-                            fontSize = 22.sp
-                        )
+                        Box(modifier = Modifier.clickable { onProfileClick() }) {
+                            BanglaHeading(
+                                text = "$greeting, $userName $emoji",
+                                color = MaterialTheme.colorScheme.primary,
+                                fontSize = 22.sp
+                            )
+                        }
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         // Test Button to simulate incoming push notification
@@ -312,16 +355,47 @@ fun HeroSection(
                     weatherText = "১৪ জিলহজ | $wEmoji $desc — তাপমাত্রা ${com.example.ui.screens.weather.banglaNumerals(current?.temperature?.toInt() ?: 0)}°C"
                 }
 
-                BanglaText(
-                    text = weatherText,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Surface(
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+                    shape = RoundedCornerShape(20.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        BanglaText(
+                            text = "📍 $weatherText",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
                 Spacer(modifier = Modifier.height(16.dp))
-                BanglaText(
-                    text = "\"নিশ্চয়ই আল্লাহ ধৈর্যশীলদের সাথে আছেন।\" (সূরা বাকারা: ১৫৩)",
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(start = 8.dp)
-                )
+                Surface(
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        BanglaText(
+                            text = "✨",
+                            fontSize = 24.sp,
+                            modifier = Modifier.padding(end = 12.dp)
+                        )
+                        BanglaText(
+                            text = "\"নিশ্চয়ই আল্লাহ ধৈর্যশীলদের সাথে আছেন।\" (সূরা বাকারা: ১৫৩)",
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 14.sp,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
             }
         }
         
@@ -352,7 +426,43 @@ fun HeroSection(
 }
 
 @Composable
-fun NextPrayerCard() {
+fun NextPrayerCard(viewModel: com.example.ui.screens.prayer.PrayerViewModel = viewModel()) {
+    val todayTimes by viewModel.todayPrayerTimes.collectAsState()
+    val todayLogs by viewModel.todayLogs.collectAsState()
+
+    val prayerKeys = listOf("fajr", "dhuhr", "asr", "maghrib", "isha")
+    val prayerNamesBn = mapOf("fajr" to "ফজর", "dhuhr" to "যোহর", "asr" to "আসর", "maghrib" to "মাগরিব", "isha" to "এশা")
+
+    val currentTime = System.currentTimeMillis()
+    val parsedTimes = todayTimes.mapValues { (_, timeStr) ->
+        parseTimeToMillis(timeStr)
+    }
+
+    var nextPrayerKey = "fajr"
+    var minDiff = Long.MAX_VALUE
+    parsedTimes.forEach { (key, timeMs) ->
+        val diff = timeMs - currentTime
+        if (diff > 0 && diff < minDiff) {
+            minDiff = diff
+            nextPrayerKey = key
+        }
+    }
+
+    val nextPrayerBn = prayerNamesBn[nextPrayerKey] ?: ""
+    val schedMs = parsedTimes[nextPrayerKey] ?: System.currentTimeMillis()
+    val diffMs = schedMs - currentTime
+    val countdownText = if (diffMs > 0) {
+        val diffMin = (diffMs / (1000 * 60)) % 60
+        val diffHour = (diffMs / (1000 * 60 * 60))
+        val hourText = if (diffHour > 0) "${toBengaliDigits(diffHour.toString())} ঘণ্টা " else ""
+        "$hourText${toBengaliDigits(diffMin.toString())} মিনিট বাকি"
+    } else {
+        "সময় হয়েছে"
+    }
+
+    val prayedCount = todayLogs.count { it.status == "prayed" }
+    val progress = if (prayedCount > 0) prayedCount.toFloat() / 5f else 0f
+
     Column {
         CardIslamic(modifier = Modifier.fillMaxWidth()) {
             Column {
@@ -362,22 +472,23 @@ fun NextPrayerCard() {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     BanglaHeading(
-                        text = "পরবর্তী নামাজ: আসর",
+                        text = "পরবর্তী নামাজ: $nextPrayerBn",
                         color = MaterialTheme.colorScheme.primary
                     )
                     Box(
                         modifier = Modifier
-                            .background(GreenLight.copy(alpha = 0.2f), RoundedCornerShape(Radius.sm))
+                            .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(Radius.sm))
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
-                        BanglaText(text = "৩/৫ ✓", color = MaterialTheme.colorScheme.primary)
+                        val countBn = toBengaliDigits(prayedCount.toString())
+                        BanglaText(text = "$countBn/৫ ✓", color = MaterialTheme.colorScheme.onPrimaryContainer, fontWeight = FontWeight.Bold)
                     }
                 }
                 Spacer(modifier = Modifier.height(Spacing.sm))
-                BanglaText(text = "১ ঘণ্টা ২৩ মিনিট বাকি", modifier = Modifier.padding(bottom = 8.dp))
+                BanglaText(text = countdownText, modifier = Modifier.padding(bottom = 8.dp))
                 
                 LinearProgressIndicator(
-                    progress = 0.6f,
+                    progress = progress,
                     modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(Radius.full)),
                     color = MaterialTheme.colorScheme.primary,
                     trackColor = MaterialTheme.colorScheme.primaryContainer
@@ -386,13 +497,18 @@ fun NextPrayerCard() {
         }
         Spacer(modifier = Modifier.height(16.dp))
         
-        val prayers = listOf("ফজর" to "৪:৩০", "যোহর" to "১:১৫", "আসর" to "৪:৪৫", "মাগরিব" to "৬:৩০", "এশা" to "৮:০০")
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(prayers) { prayer ->
+            items(prayerKeys) { key ->
+                val timeStr = todayTimes[key] ?: "12:00 PM"
+                val nameBn = prayerNamesBn[key] ?: key
+                val displayTime = toBengaliTime(timeStr)
+                val isDone = todayLogs.any { it.prayerName == key && it.status == "prayed" }
+                val isNext = key == nextPrayerKey
+
                 Surface(
-                    color = MaterialTheme.colorScheme.surface,
+                    color = if (isDone) MaterialTheme.colorScheme.primaryContainer else if (isNext) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
                     shape = RoundedCornerShape(Radius.sm),
                     shadowElevation = 1.dp
                 ) {
@@ -400,15 +516,25 @@ fun NextPrayerCard() {
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        BanglaText(text = prayer.first, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        BanglaText(
+                            text = nameBn,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp,
+                            color = if (isDone) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+                        )
                         Spacer(modifier = Modifier.height(4.dp))
-                        BanglaText(text = prayer.second, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                        BanglaText(
+                            text = displayTime,
+                            color = if (isDone) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 12.sp
+                        )
                     }
                 }
             }
         }
     }
 }
+
 data class QuickActionItem(
     val id: String,
     val title: String,
@@ -521,28 +647,82 @@ fun GridItemCard(item: QuickActionItem, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun MedicineCard(onClick: () -> Unit = {}) {
+fun MedicineCard(
+    onClick: () -> Unit = {},
+    viewModel: com.example.ui.screens.medicine.MedicineViewModel = viewModel()
+) {
+    val activeMeds by viewModel.activeMedicines.collectAsState()
+    val recentLogs by viewModel.recentLogs.collectAsState()
+
+    // Find the next upcoming log
+    val nextLog = recentLogs
+        .filter { it.status == "upcoming" }
+        .minByOrNull { it.scheduledAt }
+
+    val nextMed = nextLog?.let { log ->
+        activeMeds.find { it.id == log.medicineId }
+    }
+
     CardBase(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
-                BanglaHeading(text = "সকালের ওষুধ 💊")
-                Spacer(modifier = Modifier.height(4.dp))
-                BanglaText(text = "মেটফর্মিন — ৮:০০ টায়", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Column(modifier = Modifier.weight(1f)) {
+                if (nextMed != null && nextLog != null) {
+                    val cal = java.util.Calendar.getInstance().apply { timeInMillis = nextLog.scheduledAt }
+                    val hour = cal.get(java.util.Calendar.HOUR_OF_DAY)
+                    val minute = cal.get(java.util.Calendar.MINUTE)
+                    val ampm = if (cal.get(java.util.Calendar.AM_PM) == java.util.Calendar.AM) "সকাল" else "বিকাল/রাত"
+                    val minStr = String.format("%02d", minute)
+                    val timeStr = toBengaliDigits("$hour:$minStr")
+                    
+                    val medName = nextMed.banglaName ?: nextMed.medicineName
+                    
+                    BanglaHeading(text = "পরবর্তী ওষুধ 💊")
+                    Spacer(modifier = Modifier.height(4.dp))
+                    BanglaText(
+                        text = "$medName — $ampm $timeStr টায় (${nextMed.dosage})",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else {
+                    BanglaHeading(text = "ওষুধের তালিকা 💊")
+                    Spacer(modifier = Modifier.height(4.dp))
+                    BanglaText(
+                        text = if (activeMeds.isEmpty()) "কোনো ওষুধ যোগ করা হয়নি" else "আজকের সব ওষুধ খাওয়া হয়েছে",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
-            Surface(
-                color = GreenLight.copy(alpha = 0.2f),
-                shape = CircleShape,
-                modifier = Modifier.padding(8.dp)
-            ) {
-                BanglaText(
-                    text = "খেয়েছি ✓",
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                )
+            
+            if (nextMed != null && nextLog != null) {
+                Surface(
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    shape = CircleShape,
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .clickable { viewModel.markLogAsTaken(nextLog) }
+                ) {
+                    BanglaText(
+                        text = "খেয়েছি ✓",
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    )
+                }
+            } else {
+                Surface(
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    shape = CircleShape,
+                    modifier = Modifier.padding(8.dp)
+                ) {
+                    BanglaText(
+                        text = "বিস্তারিত",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    )
+                }
             }
         }
     }
@@ -553,7 +733,7 @@ fun QuranWidget() {
     CardIslamic(modifier = Modifier.fillMaxWidth()) {
         Column {
             androidx.compose.material3.Text(
-                text = "ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَـٰلَمِينَ",
+                text = "👑 ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَـٰلَمِينَ",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Right,
@@ -591,24 +771,47 @@ fun QuranWidget() {
 }
 
 @Composable
-fun HealthSummaryCard() {
-    CardHealth(modifier = Modifier.fillMaxWidth()) {
+fun HealthSummaryCard(
+    onClick: () -> Unit = {},
+    viewModel: com.example.ui.screens.health.HealthViewModel = viewModel()
+) {
+    val records by viewModel.records.collectAsState()
+    val latestBp = records.filter { it.recordType == "bp" }.maxByOrNull { it.recordedAt }
+    val latestSugar = records.filter { it.recordType == "sugar" }.maxByOrNull { it.recordedAt }
+    
+    CardHealth(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
         Column {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 BanglaHeading(text = "স্বাস্থ্য 💚", color = InfoCalm)
                 Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = InfoCalm)
             }
             Spacer(modifier = Modifier.height(Spacing.sm))
-            BanglaText(text = "শেষ রক্তচাপ: ১২০/৮০ mmHg ↓ (স্বাভাবিক)")
+            
+            if (latestBp != null) {
+                val sys = latestBp.valuePrimary.toInt()
+                val dia = latestBp.valueSecondary?.toInt() ?: 80
+                val status = getBpStatusBn(latestBp.valuePrimary, latestBp.valueSecondary ?: 80.0)
+                val sysBn = toBengaliDigits(sys.toString())
+                val diaBn = toBengaliDigits(dia.toString())
+                
+                BanglaText(text = "শেষ রক্তচাপ: $sysBn/$diaBn mmHg ($status)")
+            } else if (latestSugar != null) {
+                val sugar = latestSugar.valuePrimary
+                val sugarBn = toBengaliDigits(String.format("%.1f", sugar))
+                BanglaText(text = "শেষ সুগার: $sugarBn mmol/L")
+            } else {
+                BanglaText(text = "কোনো স্বাস্থ্য রেকর্ড যুক্ত করা হয়নি। নতুন রেকর্ড যোগ করতে চাপ দিন।")
+            }
         }
     }
 }
 
 @Composable
-fun HadithPreview(onClick: () -> Unit = {}) {
+fun HadithPreview(text: String, onClick: () -> Unit = {}) {
     CardBase(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
         Row {
             Box(
@@ -620,7 +823,7 @@ fun HadithPreview(onClick: () -> Unit = {}) {
             Spacer(modifier = Modifier.width(Spacing.md))
             Column {
                 BanglaText(
-                    text = "\"মায়ের পায়ের নিচে সন্তানের বেহেশত।\"",
+                    text = "\"$text\"",
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(4.dp))
@@ -631,25 +834,106 @@ fun HadithPreview(onClick: () -> Unit = {}) {
 }
 
 @Composable
-fun FamilyActivityCard() {
-    CardBase(modifier = Modifier.fillMaxWidth()) {
+fun FamilyActivityCard(
+    onClick: () -> Unit = {},
+    viewModel: com.example.ui.screens.family.FamilyViewModel = viewModel()
+) {
+    val members by viewModel.familyMembers.collectAsState()
+    
+    CardBase(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
         Column {
             BanglaHeading(text = "আপনার পরিবার 👨‍👩‍👧‍👦")
             Spacer(modifier = Modifier.height(12.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Row(modifier = Modifier.weight(1f)) {
-                    repeat(3) {
-                        Surface(
-                            modifier = Modifier.size(40.dp).padding(end = 4.dp),
-                            shape = CircleShape,
-                            color = MaterialTheme.colorScheme.primaryContainer
-                        ) {
-                            Icon(Icons.Filled.Person, contentDescription = null, modifier = Modifier.padding(8.dp), tint = MaterialTheme.colorScheme.onPrimaryContainer)
+            
+            if (members.isNotEmpty()) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        horizontalArrangement = Arrangement.spacedBy((-8).dp) // overlapping style for premium feel
+                    ) {
+                        members.take(4).forEach { member ->
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .background(Color(member.avatarColor), CircleShape)
+                                    .border(1.5.dp, MaterialTheme.colorScheme.surface, CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = member.name.take(1),
+                                    color = Color.White,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
                     }
+                    val countBn = toBengaliDigits(members.size.toString())
+                    BanglaText(
+                        text = "পরিবারে $countBn জন সদস্য আছেন 💚",
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
-                BanglaText(text = "সবাই ভালো আছে 💚", color = GreenLight, fontWeight = FontWeight.Bold)
+            } else {
+                BanglaText(
+                    text = "পরিবারের কোনো সদস্য যোগ করা হয়নি। যোগ করতে এখানে চাপুন।",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
+    }
+}
+
+// ---------------- Helpers ---------------- //
+
+private fun parseTimeToMillis(timeStr: String): Long {
+    return try {
+        val cal = java.util.Calendar.getInstance()
+        val cleanStr = timeStr.replace(" AM", "").replace(" PM", "").trim()
+        val parts = cleanStr.split(":")
+        var hour = parts[0].toInt()
+        val min = parts[1].toInt()
+        
+        if (timeStr.contains("PM") && hour != 12) {
+            hour += 12
+        } else if (timeStr.contains("AM") && hour == 12) {
+            hour = 0
+        }
+        cal.set(java.util.Calendar.HOUR_OF_DAY, hour)
+        cal.set(java.util.Calendar.MINUTE, min)
+        cal.set(java.util.Calendar.SECOND, 0)
+        cal.set(java.util.Calendar.MILLISECOND, 0)
+        cal.timeInMillis
+    } catch (e: Exception) {
+        System.currentTimeMillis()
+    }
+}
+
+private fun toBengaliDigits(number: String): String {
+    val bengaliDigits = arrayOf('০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯')
+    val builder = StringBuilder()
+    for (char in number) {
+        if (char in '0'..'9') {
+            builder.append(bengaliDigits[char - '0'])
+        } else {
+            builder.append(char)
+        }
+    }
+    return builder.toString()
+}
+
+private fun toBengaliTime(timeStr: String): String {
+    val clean = toBengaliDigits(timeStr)
+    return clean.replace("AM", "পূর্বাহ্ণ").replace("PM", "অপরাহ্ণ")
+}
+
+private fun getBpStatusBn(systolic: Double, diastolic: Double): String {
+    return if (systolic < 120 && diastolic < 80) {
+        "স্বাভাবিক"
+    } else if (systolic in 120.0..129.9 || diastolic in 80.0..84.9) {
+        "সামান্য বেশি"
+    } else {
+        "উচ্চ রক্তচাপ"
     }
 }

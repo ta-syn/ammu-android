@@ -60,7 +60,6 @@ import com.example.ui.screens.medicine.MedicineScreen
 import com.example.ui.screens.hospital.HospitalScreen
 import com.example.ui.screens.more.MoreScreen
 import com.example.ui.screens.prayer.PrayerScreen
-import com.example.ui.theme.GreenLight
 import com.example.ui.screens.quran.QuranScreen
 import com.example.ui.screens.quran.SurahReaderScreen
 import com.example.ui.screens.hadith.HadithScreen
@@ -139,7 +138,7 @@ fun AppNavigation() {
                             )
                             BanglaText(
                                 "তাসবিহ পড়ুন 📿",
-                                color = GreenLight,
+                                color = MaterialTheme.colorScheme.primary,
                                 fontSize = 12.sp,
                                 fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
                             )
@@ -164,7 +163,7 @@ fun AppNavigation() {
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentDestination = navBackStackEntry?.destination
             val isAuthScreen = currentDestination?.route == Screen.Login.route || currentDestination?.route == Screen.Register.route || currentDestination?.route == Screen.Onboarding.route
-
+ 
             if (!isAuthScreen) {
                 NavigationBar {
                     bottomNavigationItems.forEach { screen ->
@@ -190,10 +189,10 @@ fun AppNavigation() {
                                         Box(
                                             modifier = Modifier
                                                 .size(48.dp)
-                                                .background(if (isSelected) GreenLight else GreenLight.copy(alpha = 0.7f), CircleShape),
+                                                .background(if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary.copy(alpha = 0.7f), CircleShape),
                                             contentAlignment = androidx.compose.ui.Alignment.Center
                                         ) {
-                                            Icon(it, contentDescription = screen.title, tint = Color.White)
+                                            Icon(it, contentDescription = screen.title, tint = MaterialTheme.colorScheme.onPrimary)
                                         }
                                     } else {
                                         Icon(it, contentDescription = screen.title) 

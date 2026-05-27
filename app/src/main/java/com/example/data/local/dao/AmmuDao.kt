@@ -77,6 +77,9 @@ interface AmmuDao {
     @Query("SELECT * FROM recipes WHERE isFavorite = 1")
     fun getFavoriteRecipes(): Flow<List<com.example.data.local.entity.Recipe>>
 
+    @Query("SELECT * FROM recipes ORDER BY id DESC")
+    fun getAllRecipes(): Flow<List<com.example.data.local.entity.Recipe>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertNewsArticles(articles: List<com.example.data.local.entity.NewsArticle>)
 
